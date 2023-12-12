@@ -7,8 +7,6 @@ from .views import (
     EventDetail,
     ExpenseList,
     ExpenseDetail,
-    UserEventDebtList,
-    UserEventDebtDetail,
 )
 
 urlpatterns = [

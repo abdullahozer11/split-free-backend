@@ -5,7 +5,6 @@ from .serializers import (
     UserSerializer,
     EventSerializer,
     ExpenseSerializer,
-    UserEventDebtSerializer,
 )
 
 
