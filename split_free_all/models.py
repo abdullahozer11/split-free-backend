@@ -6,7 +6,7 @@ class User(models.Model):
 
 
 class Event(models.Model):
-    title = models.CharField(max_length=255)
+    title = models.CharField(max_length=255, default=None)
     description = models.TextField()
     users = models.ManyToManyField(User)
 
@@ -19,6 +19,7 @@ class UserEventDebt(models.Model):
 
 class Expense(models.Model):
     amount = models.DecimalField(max_digits=10, decimal_places=2)
+    title = models.CharField(max_length=255, default=None)
     description = models.TextField()
     payer = models.ForeignKey(User, on_delete=models.CASCADE, related_name="payer")
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
