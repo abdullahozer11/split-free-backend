@@ -49,4 +49,3 @@ class ExpenseList(generics.ListCreateAPIView):
 class ExpenseDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Expense.objects.all()
     serializer_class = ExpenseSerializer
-
