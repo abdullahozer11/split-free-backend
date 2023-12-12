@@ -20,5 +20,6 @@ class UserEventDebt(models.Model):
 class Expense(models.Model):
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     description = models.TextField()
-    payer = models.ForeignKey(User, on_delete=models.CASCADE)
+    payer = models.ForeignKey(User, on_delete=models.CASCADE, related_name="payer")
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
+    users = models.ManyToManyField(User, related_name="users")
