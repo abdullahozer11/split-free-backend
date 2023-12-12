@@ -1,9 +1,15 @@
 {
   "cSpell.language": "en",
   "cSpell.words": [
+    "ASGI",
+    "initialised",
     "Lohier",
+    "minimisation",
     "Ozer",
-    "venv"
+    "pkgpath",
+    "uninitialised",
+    "venv",
+    "viewsets"
   ],
   "esbonio.sphinx.confDir": ""
 }
