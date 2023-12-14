@@ -1,12 +1,12 @@
 from rest_framework import generics, viewsets
 
-from .models import Event, Event, Expense, User, UserEventDebt
-from .serializers import (
+from split_free_all.models import Event, Event, Expense, User, UserEventDebt
+from split_free_all.serializers import (
     UserSerializer,
     EventSerializer,
     ExpenseSerializer,
 )
-from .signals import event_created, expense_created
+from split_free_all.signals import event_created, expense_created
 
 
 ################################################################################

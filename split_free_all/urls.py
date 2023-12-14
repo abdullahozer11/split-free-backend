@@ -1,6 +1,6 @@
 # urls.py
 from django.urls import path
-from .views import (
+from split_free_all.views import (
     UserList,
     UserDetail,
     EventList,

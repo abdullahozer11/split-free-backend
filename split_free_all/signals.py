@@ -3,7 +3,7 @@ from decimal import Decimal
 from django.db.models.signals import Signal
 from django.dispatch import receiver
 
-from .models import UserEventDebt
+from split_free_all.models import UserEventDebt
 
 event_created = Signal()
 

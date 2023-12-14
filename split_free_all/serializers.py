@@ -1,7 +1,7 @@
 # serializers.py
 from rest_framework import serializers
 
-from .models import Event, Event, Expense, User, UserEventDebt
+from split_free_all.models import Event, Event, Expense, User, UserEventDebt
 
 
 class UserSerializer(serializers.ModelSerializer):
