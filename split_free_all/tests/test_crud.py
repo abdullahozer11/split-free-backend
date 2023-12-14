@@ -3,9 +3,12 @@ import json
 from django.test import TestCase
 from rest_framework.test import APITestCase
 from rest_framework import status
-
-from .models import User, Event, Expense
-from .serializers import UserSerializer, EventSerializer, ExpenseSerializer
+from split_free_all.models import User, Event, Expense
+from split_free_all.serializers import (
+    UserSerializer,
+    EventSerializer,
+    ExpenseSerializer,
+)
 
 
 class UserCRUDTests(TestCase):
