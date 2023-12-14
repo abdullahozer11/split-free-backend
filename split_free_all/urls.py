@@ -1,12 +1,13 @@
 # urls.py
 from django.urls import path
+
 from split_free_all.views import (
-    UserList,
-    UserDetail,
-    EventList,
     EventDetail,
-    ExpenseList,
+    EventList,
     ExpenseDetail,
+    ExpenseList,
+    UserDetail,
+    UserList,
 )
 
 urlpatterns = [

@@ -1,13 +1,14 @@
 import json
 
 from django.test import TestCase
-from rest_framework.test import APITestCase
 from rest_framework import status
-from split_free_all.models import User, Event, Expense
+from rest_framework.test import APITestCase
+
+from split_free_all.models import Event, Expense, User
 from split_free_all.serializers import (
-    UserSerializer,
     EventSerializer,
     ExpenseSerializer,
+    UserSerializer,
 )
 
 
