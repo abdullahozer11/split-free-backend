@@ -38,3 +38,15 @@ class Expense(models.Model):
 
     def __str__(self):
         return f'Expense("{self.title}") - Amount: {self.amount}'
+
+
+class IdealTransfer(models.Model):
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name="sender")
+    receiver = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="receiver"
+    )
+    event = models.ForeignKey(Event, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"Transfer({self.sender.name} to {self.receiver.name}): {self.amount}"
