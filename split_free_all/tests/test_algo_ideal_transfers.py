@@ -6,7 +6,6 @@ from split_free_all.models import Event, IdealTransfer, User, UserEventDebt
 
 class OurAlgoTests(TestCase):
     def assert_all_debts_paid(self, user_event_debts):
-        breakpoint()
         event = user_event_debts[0].event
         debt_balance_map = dict.fromkeys(
             [user_event_debt.user for user_event_debt in user_event_debts], 0.00
@@ -38,10 +37,8 @@ class OurAlgoTests(TestCase):
             UserEventDebt.objects.create(debt_balance=20.00, user=user2, event=event),
             UserEventDebt.objects.create(debt_balance=20.00, user=user3, event=event),
         ]
-        breakpoint()
 
         calculate_new_ideal_transfers_data(user_event_debts)
 
         self.assertEqual(IdealTransfer.objects.filter(event=event).count(), 2)
-        breakpoint()
         self.assert_all_debts_paid(user_event_debts)
