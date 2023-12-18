@@ -1,4 +1,6 @@
+# Copyright (c) 2023 SplitFree Org.
 # urls.py
+
 from django.urls import path
 
 from split_free_all.views import (

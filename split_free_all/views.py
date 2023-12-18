@@ -1,3 +1,5 @@
+# Copyright (c) 2023 SplitFree Org.
+
 from rest_framework import generics, viewsets
 
 from split_free_all.models import Event, Expense, User, UserEventDebt

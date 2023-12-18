@@ -1,3 +1,5 @@
+# Copyright (c) 2023 SplitFree Org.
+
 from django.db.models.signals import post_save
 from django.dispatch import Signal
 from django.test import TestCase, override_settings

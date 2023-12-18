@@ -1,3 +1,5 @@
+# Copyright (c) 2023 SplitFree Org.
+
 import json
 
 from django.test import TestCase

@@ -1,3 +1,5 @@
+# Copyright (c) 2023 SplitFree Org.
+
 """
 ASGI config for split_free_backend project.
 

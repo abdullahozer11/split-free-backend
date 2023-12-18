@@ -1,3 +1,5 @@
+# Copyright (c) 2023 SplitFree Org.
+
 """
 Django settings for split_free_backend project.
 

@@ -1,3 +1,5 @@
+# Copyright (c) 2023 SplitFree Org.
+
 from django.db import models
 
 

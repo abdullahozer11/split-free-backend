@@ -1,3 +1,5 @@
+# Copyright (c) 2023 SplitFree Org.
+
 from decimal import Decimal
 
 from django.db.models.signals import Signal
