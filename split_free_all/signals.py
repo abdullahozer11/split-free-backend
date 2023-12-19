@@ -5,6 +5,7 @@ from decimal import Decimal
 from django.db.models.signals import Signal
 from django.dispatch import receiver
 
+from split_free_all.algo_ideal_transfers import calculate_new_ideal_transfers_data
 from split_free_all.models import UserEventDebt
 
 event_created = Signal()
@@ -36,3 +37,6 @@ def handle_expense_created(sender, instance, **kwargs):
                 float(instance.amount) / nb_users_in_expense
             )
         user_event_debt.save()
+
+    # Generate the ideal transfers
+    calculate_new_ideal_transfers_data(event=instance.event)

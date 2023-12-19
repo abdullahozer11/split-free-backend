@@ -4,7 +4,7 @@ from django.db.models.signals import post_save
 from django.dispatch import Signal
 from django.test import TestCase, override_settings
 
-from split_free_all.models import Event, User, UserEventDebt
+from split_free_all.models import Event, IdealTransfer, User, UserEventDebt
 from split_free_all.signals import handle_event_created
 
 
@@ -84,3 +84,6 @@ class SignalTests(TestCase):
             UserEventDebt.objects.filter(event=event, user=user3).first().debt_balance,
             20.00,
         )
+
+        # Check that 2 ideal transfers are created
+        self.assertEqual(IdealTransfer.objects.filter(event=event).count(), 2)
