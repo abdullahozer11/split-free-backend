@@ -1,7 +1,7 @@
 from copy import deepcopy
 from decimal import Decimal
 
-from split_free_all.models import IdealTransfer
+from split_free_all.models import IdealTransfer, UserEventDebt
 
 
 def get_group_with_sum(target_sum, group_length, debts):
@@ -95,7 +95,8 @@ def get_ideal_transfers_from(group):
     return transfers
 
 
-def calculate_new_ideal_transfers_data(user_event_debts):
+def calculate_new_ideal_transfers_data(event):
+    user_event_debts = UserEventDebt.objects.filter(event=event)
     # Let's sort the user_event debts according to their balance
     debts = deepcopy(
         sorted(

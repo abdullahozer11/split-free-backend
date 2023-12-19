@@ -38,7 +38,7 @@ class OurAlgoTests(TestCase):
             UserEventDebt.objects.create(debt_balance=20.00, user=user3, event=event),
         ]
 
-        calculate_new_ideal_transfers_data(user_event_debts)
+        calculate_new_ideal_transfers_data(event=event)
 
         self.assertEqual(IdealTransfer.objects.filter(event=event).count(), 2)
         self.assert_all_debts_paid(user_event_debts)
