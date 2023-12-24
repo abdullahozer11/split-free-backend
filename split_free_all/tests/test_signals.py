@@ -8,7 +8,7 @@ from split_free_all.models import Event, Expense, IdealTransfer, User, UserEvent
 from split_free_all.signals import handle_event_created
 
 
-class SignalTests(TestCase):
+class EventSignalTests(TestCase):
     @override_settings(USE_TZ=False)  # Override settings to avoid issues with signals
     def setUp(self):
         # Disconnect the signal before the test starts
@@ -87,6 +87,18 @@ class SignalTests(TestCase):
 
         # Check that 2 ideal transfers are created
         self.assertEqual(IdealTransfer.objects.filter(event=event).count(), 2)
+
+
+class ExpenseSignalTests(TestCase):
+    @override_settings(USE_TZ=False)  # Override settings to avoid issues with signals
+    def setUp(self):
+        # Disconnect the signal before the test starts
+        post_save.disconnect(handle_event_created, sender=Event)
+
+    @override_settings(USE_TZ=False)  # Override settings to avoid issues with signals
+    def tearDown(self):
+        # Reconnect the signal after the test is finished
+        post_save.connect(handle_event_created, sender=Event)
 
     def test_handle_expense_updated_signal_added_users(self):
         # Create two users
