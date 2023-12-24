@@ -10,6 +10,7 @@ from split_free_all.models import Event, Expense, User
 from split_free_all.serializers import (
     EventSerializer,
     ExpenseSerializer,
+    UserEventDebt,
     UserSerializer,
 )
 
@@ -104,8 +105,17 @@ class ExpenseCRUDTests(TestCase):
 
         # Create an event for testing
         self.event = Event.objects.create(
-            title="Test Event", description="Event for testing"
+            title="Test Event",
+            description="Event for testing",
         )
+
+        self.event.users.add(self.user1, self.user2)
+
+        # Create associated debts. This usually comes with the creation of the
+        # event using the post method, but as we are unit testing we use ORM
+        # instead
+        UserEventDebt.objects.create(user=self.user1, event=self.event, debt_balance=0)
+        UserEventDebt.objects.create(user=self.user2, event=self.event, debt_balance=0)
 
     def test_create_expense(self):
         data = {
