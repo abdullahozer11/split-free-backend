@@ -100,77 +100,82 @@ class ExpenseSignalTests(TestCase):
         # Reconnect the signal after the test is finished
         post_save.connect(handle_event_created, sender=Event)
 
-    def test_handle_expense_updated_signal_added_users(self):
-        # Create two users
-        user1 = User.objects.create(name="Apo")
-        user2 = User.objects.create(name="Michael")
-        user3 = User.objects.create(name="Jeremy")
-        user4 = User.objects.create(name="Maxim")
-        users = [user1, user2, user3, user4]
-
+    def create_basic_expense(self):
+        # Create users
+        self.users = [
+            User.objects.create(name="Apo"),
+            User.objects.create(name="Michael"),
+        ]
         # Create an event with these users
-        event = Event.objects.create(
+        self.event = Event.objects.create(
             title="Holidays",
             description="Great holidays",
         )
-
-        event.users.add(user1, user2, user3, user4)
-
+        # Add the created users to the event
+        self.event.users.add(*self.users)
         # Create the debt with a balance of 0.00 as it would be with the creation
         # of the event
-        for user in users:
-            UserEventDebt.objects.create(user=user, event=event, debt_balance=0.00)
+        for user in self.users:
+            UserEventDebt.objects.create(user=user, event=self.event, debt_balance=0.00)
 
         # Create an expense with these users within this event
-        expense = Expense.objects.create(
+        self.expense = Expense.objects.create(
             amount=60.00,
             title="Dinner",
             description="Expense for dinner",
-            event=event,
-            payer=user2,
+            event=self.event,
+            payer=self.users[0],
         )
-
-        expense.users.add(user1, user2)
-
+        # Add the created users to the expense
+        self.expense.users.add(*self.users)
         # Update the associated debts that are usually updated with the creation
         # of the expense
-        debt_user1 = UserEventDebt.objects.get(user=user1, event=event)
-        debt_user1.debt_balance = 30.00
+        debt_user1 = UserEventDebt.objects.get(user=self.users[0], event=self.event)
+        debt_user1.debt_balance = -30.00
         debt_user1.save()
 
-        debt_user2 = UserEventDebt.objects.get(user=user2, event=event)
-        debt_user2.debt_balance = -30.00
+        debt_user2 = UserEventDebt.objects.get(user=self.users[1], event=self.event)
+        debt_user2.debt_balance = 30.00
         debt_user2.save()
+
+    def test_handle_expense_updated_signal_added_users(self):
+        self.create_basic_expense()
+
+        # Create two new users their debts
+        new_users = [
+            User.objects.create(name="Maxim"),
+            User.objects.create(name="Clement"),
+        ]
+        self.users.extend(new_users)
+        for user in new_users:
+            UserEventDebt.objects.create(user=user, event=self.event, debt_balance=0.00)
+        # Add the users to the event
+        self.event.users.add(*new_users)
 
         # Update the expense by adding two users
         new_expense_data = {
             "amount": 60.00,
             "title": "Dinner",
             "description": "Expense for dinner",
-            "payer": user2.id,
-            "event": event.id,
-            "users": [user1.id, user2.id, user3.id, user4.id],
+            "payer": self.users[0].id,
+            "event": self.event.id,
+            # Only this changes as there are now 4 users
+            "users": [user.id for user in self.users],
         }
 
         self.client.put(
-            f"/api/expenses/{expense.id}/",
+            f"/api/expenses/{self.expense.id}/",
             new_expense_data,
             content_type="application/json",
         )
-        self.assertEqual(expense.users.count(), 4)
-        self.assertEqual(UserEventDebt.objects.filter(event=event).count(), 4)
+        self.assertEqual(self.expense.users.count(), 4)
+        self.assertEqual(UserEventDebt.objects.filter(event=self.event).count(), 4)
 
-        self.assertEqual(
-            UserEventDebt.objects.get(user=user1, event=event).debt_balance, 15.00
-        )
-        self.assertEqual(
-            UserEventDebt.objects.get(user=user2, event=event).debt_balance, -45.00
-        )
-        self.assertEqual(
-            UserEventDebt.objects.get(user=user3, event=event).debt_balance, 15.00
-        )
-        self.assertEqual(
-            UserEventDebt.objects.get(user=user4, event=event).debt_balance, 15.00
-        )
+        for user_index, user in enumerate(self.users):
+            debt_balance = -45.00 if user_index == 0 else 15.00
+            self.assertEqual(
+                UserEventDebt.objects.get(user=user, event=self.event).debt_balance,
+                debt_balance,
+            )
 
-        self.assertEqual(IdealTransfer.objects.filter(event=event).count(), 3)
+        self.assertEqual(IdealTransfer.objects.filter(event=self.event).count(), 3)
