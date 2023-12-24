@@ -1,6 +1,8 @@
 # Copyright (c) 2023 SplitFree Org.
 
 import json
+import unittest
+from unittest.mock import patch
 
 from django.test import TestCase
 from rest_framework import status
@@ -147,7 +149,11 @@ class ExpenseCRUDTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, ExpenseSerializer(expense).data)
 
-    def test_update_expense(self):
+    @patch(
+        "split_free_all.signals.calculate_new_ideal_transfers_data",
+        side_effect=lambda event: None,
+    )
+    def test_update_expense(self, _):
         expense = Expense.objects.create(
             amount=20.00,
             title="Coffee",
