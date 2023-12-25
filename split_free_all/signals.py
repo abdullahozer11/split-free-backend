@@ -82,3 +82,13 @@ def renew_debts_and_transfers(
     apply_impact_expense(expense_info=new_expense_info)
     # Generate the ideal transfers
     calculate_new_ideal_transfers_data(event=instance.event)
+
+
+expense_destroyed = Signal()
+
+
+@receiver(expense_destroyed)
+def remove_debts_and_transfers(sender, instance, **kwargs):
+    undo_impact_expense(expense_info=model_to_dict(instance))
+    # Generate the ideal transfers
+    calculate_new_ideal_transfers_data(event=instance.event)

@@ -9,7 +9,12 @@ from split_free_all.serializers import (
     ExpenseSerializer,
     UserSerializer,
 )
-from split_free_all.signals import event_created, expense_created, expense_updated
+from split_free_all.signals import (
+    event_created,
+    expense_created,
+    expense_destroyed,
+    expense_updated,
+)
 
 ################################################################################
 # User
@@ -82,3 +87,10 @@ class ExpenseDetail(generics.RetrieveUpdateDestroyAPIView):
                 old_expense_info=old_expense_info,
                 new_expense_info=new_expense_info,
             )
+
+    def perform_destroy(self, instance):
+        instance = self.get_object()
+        # Trigger the custom signal
+        expense_destroyed.send(sender=self.__class__, instance=instance)
+
+        instance.delete()

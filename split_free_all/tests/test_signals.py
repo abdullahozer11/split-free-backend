@@ -266,3 +266,15 @@ class ExpenseSignalTests(TestCase):
             )
 
         self.assertEqual(IdealTransfer.objects.filter(event=self.event).count(), 2)
+
+    def test_handle_expense_destroyed(self):
+        self.create_basic_expense()
+
+        self.client.delete(f"/api/expenses/{self.expense.id}/")
+
+        for user in self.users:
+            self.assertEqual(
+                UserEventDebt.objects.get(user=user, event=self.event).debt_balance,
+                0.00,
+            )
+        self.assertEqual(IdealTransfer.objects.filter(event=self.event).count(), 0)
