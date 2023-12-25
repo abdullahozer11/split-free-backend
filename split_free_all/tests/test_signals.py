@@ -105,6 +105,7 @@ class ExpenseSignalTests(TestCase):
         self.users = [
             User.objects.create(name="Apo"),
             User.objects.create(name="Michael"),
+            User.objects.create(name="Jake"),
         ]
         # Create an event with these users
         self.event = Event.objects.create(
@@ -131,12 +132,16 @@ class ExpenseSignalTests(TestCase):
         # Update the associated debts that are usually updated with the creation
         # of the expense
         debt_user1 = UserEventDebt.objects.get(user=self.users[0], event=self.event)
-        debt_user1.debt_balance = -30.00
+        debt_user1.debt_balance = -40.00
         debt_user1.save()
 
         debt_user2 = UserEventDebt.objects.get(user=self.users[1], event=self.event)
-        debt_user2.debt_balance = 30.00
+        debt_user2.debt_balance = 20.00
         debt_user2.save()
+
+        debt_user3 = UserEventDebt.objects.get(user=self.users[2], event=self.event)
+        debt_user3.debt_balance = 20.00
+        debt_user3.save()
 
     def test_handle_expense_updated_signal_added_users(self):
         self.create_basic_expense()
@@ -168,14 +173,14 @@ class ExpenseSignalTests(TestCase):
             new_expense_data,
             content_type="application/json",
         )
-        self.assertEqual(self.expense.users.count(), 4)
-        self.assertEqual(UserEventDebt.objects.filter(event=self.event).count(), 4)
+        self.assertEqual(self.expense.users.count(), 5)
+        self.assertEqual(UserEventDebt.objects.filter(event=self.event).count(), 5)
 
         for user_index, user in enumerate(self.users):
-            debt_balance = -45.00 if user_index == 0 else 15.00
+            debt_balance = -48.00 if user_index == 0 else 12.00
             self.assertEqual(
                 UserEventDebt.objects.get(user=user, event=self.event).debt_balance,
                 debt_balance,
             )
 
-        self.assertEqual(IdealTransfer.objects.filter(event=self.event).count(), 3)
+        self.assertEqual(IdealTransfer.objects.filter(event=self.event).count(), 4)
