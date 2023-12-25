@@ -62,6 +62,8 @@ def remove_group_from_debts(debts, group):
 
 
 def get_ideal_transfers_from(group):
+    if len(group) < 2:
+        return []
     # As the debts in the group are sorted according to their balance, let's
     # Consider the first and the last one, one will be positive and the other
     # one negative. Let's make them match into a transaction so that the one
