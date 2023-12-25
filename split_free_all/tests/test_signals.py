@@ -44,6 +44,18 @@ class EventSignalTests(TestCase):
             user_event_debt = users_event_debts.get(user=user)
             self.assertEqual(user_event_debt.debt_balance, 0.0)
 
+
+class ExpenseSignalTests(TestCase):
+    @override_settings(USE_TZ=False)  # Override settings to avoid issues with signals
+    def setUp(self):
+        # Disconnect the signal before the test starts
+        post_save.disconnect(handle_event_created, sender=Event)
+
+    @override_settings(USE_TZ=False)  # Override settings to avoid issues with signals
+    def tearDown(self):
+        # Reconnect the signal after the test is finished
+        post_save.connect(handle_event_created, sender=Event)
+
     def test_handle_expense_created_signal(self):
         # Create three users
         user1 = User.objects.create(name="Apo")
@@ -87,18 +99,6 @@ class EventSignalTests(TestCase):
 
         # Check that 2 ideal transfers are created
         self.assertEqual(IdealTransfer.objects.filter(event=event).count(), 2)
-
-
-class ExpenseSignalTests(TestCase):
-    @override_settings(USE_TZ=False)  # Override settings to avoid issues with signals
-    def setUp(self):
-        # Disconnect the signal before the test starts
-        post_save.disconnect(handle_event_created, sender=Event)
-
-    @override_settings(USE_TZ=False)  # Override settings to avoid issues with signals
-    def tearDown(self):
-        # Reconnect the signal after the test is finished
-        post_save.connect(handle_event_created, sender=Event)
 
     def create_basic_expense(self):
         # Create users
