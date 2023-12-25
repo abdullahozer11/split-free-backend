@@ -106,18 +106,16 @@ def calculate_new_ideal_transfers_data(event):
         )
     )  # debt is a simpler name for after
 
-    number_debts = len(debts)
-
     # This is where the ideal transfers are stored
     ideal_transfers = []
-    # Let's group debts of 1, 2, ... number_debts//2 debts
+    # Let's group debts of 1, 2, ... len(debts)//2 debts
     # This variable is called group_length
     group_length = 1
     while debts:
-        # If no groups of null sum could be found with less than 'number_debts // 2'
+        # If no groups of null sum could be found with less than 'len(debts) // 2'
         # There won't be group of more than that
-        if group_length > number_debts // 2:
-            group_length = number_debts
+        if group_length > len(debts) // 2:
+            group_length = len(debts)
         # Try to find a group of length: group_length
         group = get_group_with_sum(
             target_sum=0.00, group_length=group_length, debts=debts
