@@ -44,6 +44,87 @@ class EventSignalTests(TestCase):
             user_event_debt = users_event_debts.get(user=user)
             self.assertEqual(user_event_debt.debt_balance, 0.0)
 
+    def create_basic_event(self):
+        # Create users
+        self.users = [
+            User.objects.create(name="Apo"),
+            User.objects.create(name="Michael"),
+            User.objects.create(name="Jake"),
+            User.objects.create(name="John"),
+        ]
+        # Create an event with these users
+        self.event = Event.objects.create(
+            title="Day of eating",
+            description="Breakfast, lunch and dinner",
+        )
+        # Add the created users to the event
+        self.event.users.add(*self.users)
+        # Create the debt with a balance of 0.00 as it would be with the creation
+        # of the event
+        for user in self.users:
+            UserEventDebt.objects.create(user=user, event=self.event, debt_balance=0.00)
+
+        # Create expenses with these users within this event
+        self.expenses = [
+            Expense.objects.create(
+                amount=10.00,
+                title="Breakfast",
+                description="Expense for breakfast",
+                event=self.event,
+                payer=self.users[0],
+            ),
+            Expense.objects.create(
+                amount=20.00,
+                title="Lunch",
+                description="Expense for lunch",
+                event=self.event,
+                payer=self.users[1],
+            ),
+            Expense.objects.create(
+                amount=40.00,
+                title="Dinner",
+                description="Expense for dinner",
+                event=self.event,
+                payer=self.users[2],
+            ),
+        ]
+        # Involve all users in all expenses
+        for expense in self.expenses:
+            expense.users.add(*self.users)
+
+        # Update the associated debts that are usually updated with the creation
+        # of the expense
+        # User 1: -7.50 + 5 + 10 = 7.50
+        debt_user1 = UserEventDebt.objects.get(user=self.users[0], event=self.event)
+        debt_user1.debt_balance = 7.50
+        debt_user1.save()
+
+        # User 2: 2.50 - 15 + 10 = -2.50
+        debt_user2 = UserEventDebt.objects.get(user=self.users[1], event=self.event)
+        debt_user2.debt_balance = -2.50
+        debt_user2.save()
+
+        # User 3: 2.50 + 5 - 30 = -22.50
+        debt_user3 = UserEventDebt.objects.get(user=self.users[2], event=self.event)
+        debt_user3.debt_balance = -22.50
+        debt_user3.save()
+
+        # User 4: 2.50 + 5 + 10 = 17.50
+        debt_user4 = UserEventDebt.objects.get(user=self.users[3], event=self.event)
+        debt_user4.debt_balance = 17.50
+        debt_user4.save()
+
+    def test_handle_event_destroyed_signal(self):
+        self.create_basic_event()
+
+        self.client.delete(f"/api/events/{self.event.id}/")
+
+        # This is the result of cascade deletion cause there is no signal but
+        # it's left here, we never know if we add some signals one day
+        self.assertEqual(Expense.objects.filter(event=self.event).count(), 0)
+        self.assertEqual(UserEventDebt.objects.filter(event=self.event).count(), 0)
+        self.assertEqual(IdealTransfer.objects.filter(event=self.event).count(), 0)
+
 
 class ExpenseSignalTests(TestCase):
     @override_settings(USE_TZ=False)  # Override settings to avoid issues with signals
