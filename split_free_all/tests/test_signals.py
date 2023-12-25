@@ -212,3 +212,30 @@ class ExpenseSignalTests(TestCase):
             )
 
         self.assertEqual(IdealTransfer.objects.filter(event=self.event).count(), 1)
+
+    def test_handle_expense_updated_signal_new_amount(self):
+        self.create_basic_expense()
+        new_expense_data = {
+            # The amount has changed from 60.00 to 90.00
+            "amount": 90.00,
+            "title": "Dinner",
+            "description": "Expense for dinner",
+            "payer": self.users[0].id,
+            "event": self.event.id,
+            "users": [user.id for user in self.users],
+        }
+
+        self.client.put(
+            f"/api/expenses/{self.expense.id}/",
+            new_expense_data,
+            content_type="application/json",
+        )
+
+        expected_debts = [-60.00, 30.00, 30.00]
+        for user_index, user in enumerate(self.users):
+            self.assertEqual(
+                UserEventDebt.objects.get(user=user, event=self.event).debt_balance,
+                expected_debts[user_index],
+            )
+
+        self.assertEqual(IdealTransfer.objects.filter(event=self.event).count(), 2)
