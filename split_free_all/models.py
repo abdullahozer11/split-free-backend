@@ -10,22 +10,22 @@ class User(models.Model):
         return f'User("{self.name}")'
 
 
-class Event(models.Model):
+class Group(models.Model):
     title = models.CharField(max_length=255, default=None)
     description = models.TextField()
-    users = models.ManyToManyField(User)
+    members = models.ManyToManyField(User)
 
     def __str__(self):
         return f'Event("{self.title}")'
 
 
-class UserEventDebt(models.Model):
+class Balance(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    event = models.ForeignKey(Event, on_delete=models.CASCADE)
-    debt_balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
+    group = models.ForeignKey(Group, on_delete=models.CASCADE, default=None)
+    amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
 
     def __str__(self):
-        return f'User("{self.user.name}"): {self.debt_balance}'
+        return f'User("{self.user.name}"): {self.amount}'
 
 
 class Expense(models.Model):
@@ -33,20 +33,20 @@ class Expense(models.Model):
     title = models.CharField(max_length=255, default=None)
     description = models.TextField()
     payer = models.ForeignKey(User, on_delete=models.CASCADE, related_name="payer")
-    event = models.ForeignKey(Event, on_delete=models.CASCADE)
-    users = models.ManyToManyField(User, related_name="users")
+    group = models.ForeignKey(Group, on_delete=models.CASCADE, default=None)
+    participants = models.ManyToManyField(User, related_name="members")
 
     def __str__(self):
         return f'Expense("{self.title}") - Amount: {self.amount}'
 
 
-class IdealTransfer(models.Model):
+class Debt(models.Model):
     amount = models.DecimalField(max_digits=10, decimal_places=2)
-    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name="sender")
-    receiver = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="receiver"
+    borrower = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="borrower"
     )
-    event = models.ForeignKey(Event, on_delete=models.CASCADE)
+    lender = models.ForeignKey(User, on_delete=models.CASCADE, related_name="lender")
+    group = models.ForeignKey(Group, on_delete=models.CASCADE, default=None)
 
     def __str__(self):
-        return f"Transfer({self.sender.name} to {self.receiver.name}): {self.amount}"
+        return f"Transfer({self.borrower.name} to {self.lender.name}): {self.amount}"

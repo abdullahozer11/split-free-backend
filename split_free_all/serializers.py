@@ -3,7 +3,7 @@
 
 from rest_framework import serializers
 
-from split_free_all.models import Event, Expense, User, UserEventDebt
+from split_free_all.models import Expense, Group, User
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -12,9 +12,9 @@ class UserSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class EventSerializer(serializers.ModelSerializer):
+class GroupSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Event
+        model = Group
         fields = "__all__"
 
 

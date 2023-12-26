@@ -1,23 +1,20 @@
 # Copyright (c) 2023 SplitFree Org.
 
 from django.forms.models import model_to_dict
-from rest_framework import generics, viewsets
+from rest_framework import generics
 
-from split_free_all.models import Event, Expense, User, UserEventDebt
+from split_free_all.models import Expense, Group, User
 from split_free_all.serializers import (
-    EventSerializer,
     ExpenseSerializer,
+    GroupSerializer,
     UserSerializer,
 )
 from split_free_all.signals import (
-    event_created,
     expense_created,
     expense_destroyed,
     expense_updated,
+    group_created,
 )
-
-################################################################################
-# User
 
 
 class UserList(generics.ListCreateAPIView):
@@ -30,28 +27,20 @@ class UserDetail(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = UserSerializer
 
 
-################################################################################
-# Event
-
-
-class EventList(generics.ListCreateAPIView):
-    queryset = Event.objects.all()
-    serializer_class = EventSerializer
+class GroupList(generics.ListCreateAPIView):
+    queryset = Group.objects.all()
+    serializer_class = GroupSerializer
 
     def perform_create(self, serializer):
         serializer.save()
 
         # Trigger the custom signal
-        event_created.send(sender=self.__class__, instance=serializer.instance)
+        group_created.send(sender=self.__class__, instance=serializer.instance)
 
 
-class EventDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Event.objects.all()
-    serializer_class = EventSerializer
-
-
-################################################################################
-# Expense
+class GroupDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Group.objects.all()
+    serializer_class = GroupSerializer
 
 
 class ExpenseList(generics.ListCreateAPIView):
@@ -76,7 +65,7 @@ class ExpenseDetail(generics.RetrieveUpdateDestroyAPIView):
         new_expense_info = model_to_dict(serializer.instance)
 
         if (
-            old_expense_info["users"] != new_expense_info["users"]
+            old_expense_info["participants"] != new_expense_info["participants"]
             or old_expense_info["amount"] != new_expense_info["amount"]
             or old_expense_info["payer"] != new_expense_info["payer"]
         ):
