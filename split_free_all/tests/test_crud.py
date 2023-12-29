@@ -56,7 +56,7 @@ class GroupCRUDTests(TestCase):
             "description": "A celebration",
             "members": [self.user1.id, self.user2.id],
         }
-        response = self.client.post("/api/events/", data)
+        response = self.client.post("/api/groups/", data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Group.objects.count(), 1)
         group = Group.objects.get()
@@ -66,7 +66,7 @@ class GroupCRUDTests(TestCase):
     def test_read_group(self):
         group = Group.objects.create(title="Anniversary", description="Special day")
         group.members.set([self.user1, self.user2])
-        response = self.client.get(f"/api/events/{group.id}/")
+        response = self.client.get(f"/api/groups/{group.id}/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, GroupSerializer(group).data)
 
@@ -79,7 +79,7 @@ class GroupCRUDTests(TestCase):
             "members": [self.user2.id],
         }
         response = self.client.put(
-            f"/api/events/{group.id}/", data, content_type="application/json"
+            f"/api/groups/{group.id}/", data, content_type="application/json"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         group.refresh_from_db()
@@ -90,7 +90,7 @@ class GroupCRUDTests(TestCase):
     def test_delete_group(self):
         group = Group.objects.create(title="Farewell", description="Goodbye party")
         group.members.set([self.user1, self.user2])
-        response = self.client.delete(f"/api/events/{group.id}/")
+        response = self.client.delete(f"/api/groups/{group.id}/")
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(Group.objects.count(), 0)
 
@@ -109,11 +109,11 @@ class ExpenseCRUDTests(TestCase):
 
         self.group.members.add(self.user1, self.user2)
 
-        # Create associated debts. This usually comes with the creation of the
-        # event using the post method, but as we are unit testing we use ORM
-        # instead
-        Balance.objects.create(user=self.user1, group=self.group, amount=0)
-        Balance.objects.create(user=self.user2, group=self.group, amount=0)
+        # Create associated balances. This usually comes with the creation of
+        # the event using the post method, but as we are unit testing we use the
+        # ORM instead
+        Balance.objects.create(user=self.user1, group=self.group, amount=0.00)
+        Balance.objects.create(user=self.user2, group=self.group, amount=0.00)
 
     def test_create_expense(self):
         data = {
@@ -145,10 +145,7 @@ class ExpenseCRUDTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, ExpenseSerializer(expense).data)
 
-    @patch(
-        "split_free_all.signals.calculate_new_ideal_transfers_data",
-        side_effect=lambda group: None,
-    )
+    @patch("split_free_all.signals.calculate_new_debts", side_effect=lambda group: None)
     def test_update_expense(self, _):
         expense = Expense.objects.create(
             amount=20.00,

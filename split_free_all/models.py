@@ -16,7 +16,7 @@ class Group(models.Model):
     members = models.ManyToManyField(User)
 
     def __str__(self):
-        return f'Event("{self.title}")'
+        return f'Group("{self.title}")'
 
 
 class Balance(models.Model):
@@ -25,7 +25,7 @@ class Balance(models.Model):
     amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
 
     def __str__(self):
-        return f'User("{self.user.name}"): {self.amount}'
+        return f'User("{self.user.name}"): {self.amount} in {self.group.title}'
 
 
 class Expense(models.Model):
@@ -34,7 +34,7 @@ class Expense(models.Model):
     description = models.TextField()
     payer = models.ForeignKey(User, on_delete=models.CASCADE, related_name="payer")
     group = models.ForeignKey(Group, on_delete=models.CASCADE, default=None)
-    participants = models.ManyToManyField(User, related_name="members")
+    participants = models.ManyToManyField(User, related_name="participants")
 
     def __str__(self):
         return f'Expense("{self.title}") - Amount: {self.amount}'
@@ -49,4 +49,4 @@ class Debt(models.Model):
     group = models.ForeignKey(Group, on_delete=models.CASCADE, default=None)
 
     def __str__(self):
-        return f"Transfer({self.borrower.name} to {self.lender.name}): {self.amount}"
+        return f"Debt({self.borrower.name} to {self.lender.name}): {self.amount}"

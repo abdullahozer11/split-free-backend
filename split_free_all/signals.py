@@ -6,45 +6,45 @@ from django.db.models.signals import Signal
 from django.dispatch import receiver
 from django.forms.models import model_to_dict
 
-from split_free_all.algo_ideal_transfers import calculate_new_ideal_transfers_data
+from split_free_all.algo_debts import calculate_new_debts
 from split_free_all.models import Balance
 
 
 def apply_impact_expense(expense_info):
     # In case the payer paid and left, it's free for the other users of the
+    # expense
     if not expense_info["payer"]:
         return
 
     number_users_in_expense = len(expense_info["participants"])
-    # Update the debt balance of each user for this group
+    # Update the balance of each user for this group
     for user in expense_info["participants"]:
-        user_group_debt = Balance.objects.get(group=expense_info["group"], user=user)
+        user_balance = Balance.objects.get(group=expense_info["group"], user=user)
         if user.id == expense_info["payer"]:
-            user_group_debt.amount -= Decimal(
+            user_balance.amount -= Decimal(
                 float(expense_info["amount"]) * (1 - 1 / number_users_in_expense)
             )
         else:
-            user_group_debt.amount += Decimal(
+            user_balance.amount += Decimal(
                 float(expense_info["amount"]) / number_users_in_expense
             )
-        user_group_debt.save()
+        user_balance.save()
 
 
 def undo_impact_expense(expense_info):
     number_users_in_expense = len(expense_info["participants"])
-
-    # Update the debt balance of each user for this group
+    # Update the balance of each user for this group
     for user in expense_info["participants"]:
-        user_group_debt = Balance.objects.get(group=expense_info["group"], user=user)
+        user_balance = Balance.objects.get(group=expense_info["group"], user=user)
         if user.id == expense_info["payer"]:
-            user_group_debt.amount += Decimal(
+            user_balance.amount += Decimal(
                 float(expense_info["amount"]) * (1 - 1 / number_users_in_expense)
             )
         else:
-            user_group_debt.amount -= Decimal(
+            user_balance.amount -= Decimal(
                 float(expense_info["amount"]) / number_users_in_expense
             )
-        user_group_debt.save()
+        user_balance.save()
 
 
 group_created = Signal()
@@ -54,7 +54,7 @@ group_created = Signal()
 def handle_group_created(sender, instance, **kwargs):
     # Create a UserGroupDebt with a value of 0 for each user
     for user in instance.members.all():
-        Balance.objects.create(user=user, group=instance, amount=0.0)
+        Balance.objects.create(user=user, group=instance, amount=0.00)
 
 
 expense_created = Signal()
@@ -63,8 +63,7 @@ expense_created = Signal()
 @receiver(expense_created)
 def handle_expense_created(sender, instance, **kwargs):
     apply_impact_expense(expense_info=model_to_dict(instance))
-    # Generate the ideal transfers
-    calculate_new_ideal_transfers_data(group=instance.group)
+    calculate_new_debts(group=instance.group)
 
 
 expense_updated = Signal()
@@ -76,8 +75,7 @@ def renew_debts_and_transfers(
 ):
     undo_impact_expense(expense_info=old_expense_info)
     apply_impact_expense(expense_info=new_expense_info)
-    # Generate the ideal transfers
-    calculate_new_ideal_transfers_data(group=instance.group)
+    calculate_new_debts(group=instance.group)
 
 
 expense_destroyed = Signal()
@@ -86,5 +84,4 @@ expense_destroyed = Signal()
 @receiver(expense_destroyed)
 def remove_debts_and_transfers(sender, instance, **kwargs):
     undo_impact_expense(expense_info=model_to_dict(instance))
-    # Generate the ideal transfers
-    calculate_new_ideal_transfers_data(group=instance.group)
+    calculate_new_debts(group=instance.group)
