@@ -1,10 +1,13 @@
 # Copyright (c) 2023 SplitFree Org.
 
 from django.forms.models import model_to_dict
+from django.shortcuts import get_object_or_404
 from rest_framework import generics
+from rest_framework.response import Response
 
-from split_free_all.models import Expense, Group, User
+from split_free_all.models import Debt, Expense, Group, User
 from split_free_all.serializers import (
+    DebtSerializer,
     ExpenseSerializer,
     GroupSerializer,
     UserSerializer,
@@ -110,3 +113,19 @@ class ExpenseDetail(generics.RetrieveUpdateDestroyAPIView):
         expense_destroyed.send(sender=self.__class__, instance=instance)
 
         instance.delete()
+
+
+################################################################################
+# Debt
+
+
+class DebtListView(generics.ListAPIView):
+    serializer_class = DebtSerializer
+
+    def get_queryset(self):
+        group_id = self.request.query_params.get("group_id")
+        if group_id:
+            group = get_object_or_404(Group, pk=group_id)
+            return Debt.objects.filter(group=group)
+
+        return Debt.objects.all()

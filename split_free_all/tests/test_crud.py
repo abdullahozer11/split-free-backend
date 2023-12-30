@@ -5,7 +5,7 @@ from unittest.mock import patch
 from django.test import TestCase
 from rest_framework import status
 
-from split_free_all.models import Balance, Expense, Group, User
+from split_free_all.models import Balance, Debt, Expense, Group, User
 from split_free_all.serializers import (
     ExpenseSerializer,
     GroupSerializer,
@@ -185,3 +185,78 @@ class ExpenseCRUDTests(TestCase):
         response = self.client.delete(f"/api/expenses/{expense.id}/")
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(Expense.objects.count(), 0)
+
+
+class DebtTests(TestCase):
+    def setUp(self):
+        self.users = [
+            User.objects.create(name="Apo"),
+            User.objects.create(name="Michael"),
+            User.objects.create(name="George"),
+        ]
+
+        self.groups = [
+            Group.objects.create(
+                title="Friend group", description="This group is friendly"
+            ),
+            Group.objects.create(
+                title="Normal group", description="This group is normal"
+            ),
+        ]
+        self.groups[0].members.add(*self.users)
+        self.groups[1].members.add(self.users[0], self.users[1])
+
+    def test_get_all_debts(self):
+        # Let's create some meaningful debts and get them all
+        Debt.objects.create(
+            group=self.groups[0],
+            borrower=self.users[0],
+            lender=self.users[1],
+            amount=100.00,
+        )
+        Debt.objects.create(
+            group=self.groups[0],
+            borrower=self.users[2],
+            lender=self.users[1],
+            amount=50.00,
+        )
+
+        Debt.objects.create(
+            group=self.groups[1],
+            borrower=self.users[1],
+            lender=self.users[0],
+            amount=10.00,
+        )
+
+        response = self.client.get(f"/api/debts/")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 3)
+
+    def test_filter_debts_by_group(self):
+        Debt.objects.create(
+            group=self.groups[0],
+            borrower=self.users[0],
+            lender=self.users[1],
+            amount=100.00,
+        )
+        Debt.objects.create(
+            group=self.groups[0],
+            borrower=self.users[2],
+            lender=self.users[1],
+            amount=50.00,
+        )
+        Debt.objects.create(
+            group=self.groups[1],
+            borrower=self.users[1],
+            lender=self.users[0],
+            amount=10.00,
+        )
+
+        # Filter debts for a specific group (groups[0])
+        response = self.client.get(f"/api/debts/", {"group_id": self.groups[0].id})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 2)
+        # Ensure that all debts in the response belong to groups[0]
+        for debt in response.data:
+            self.assertEqual(debt["group"], self.groups[0].id)

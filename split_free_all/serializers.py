@@ -3,7 +3,7 @@
 
 from rest_framework import serializers
 
-from split_free_all.models import Expense, Group, User
+from split_free_all.models import Debt, Expense, Group, User
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -21,4 +21,10 @@ class GroupSerializer(serializers.ModelSerializer):
 class ExpenseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Expense
+        fields = "__all__"
+
+
+class DebtSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Debt
         fields = "__all__"
