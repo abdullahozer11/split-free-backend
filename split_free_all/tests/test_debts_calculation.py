@@ -1,3 +1,5 @@
+import random
+
 from django.test import TestCase
 
 from split_free_all.algo_debts import calculate_new_debts
@@ -52,13 +54,8 @@ class OurAlgoTests(TestCase):
             User.objects.create(name="C"),
             User.objects.create(name="D"),
         ]
+        self.group.members.add(*users)
 
-        # Create a group
-        group = Group.objects.create(
-            title="Test Group", description="Group for testing"
-        )
-
-        group.members.add(*users)
         balances = [
             Balance.objects.create(amount=0.00, user=users[0], group=self.group),
             Balance.objects.create(amount=-30.00, user=users[1], group=self.group),
@@ -69,4 +66,73 @@ class OurAlgoTests(TestCase):
         calculate_new_debts(group=self.group)
 
         self.assertEqual(Debt.objects.filter(group=self.group).count(), 2)
+        self.assert_all_debts_paid(balances)
+
+    def test_members_cancelling_in_pairs(self):
+        number_of_members = 20
+        users = [
+            User.objects.create(name=f"User {i}") for i in range(number_of_members)
+        ]
+        self.group.members.add(*users)
+
+        balances = []
+        for i in range(0, number_of_members, 2):
+            balances.append(
+                Balance.objects.create(amount=100 + i, user=users[i], group=self.group)
+            )
+            balances.append(
+                Balance.objects.create(
+                    amount=-(100 + i), user=users[i + 1], group=self.group
+                )
+            )
+        calculate_new_debts(group=self.group)
+
+        self.assertEqual(
+            Debt.objects.filter(group=self.group).count(), int(number_of_members / 2)
+        )
+        self.assert_all_debts_paid(balances)
+
+    def test_members_cancelling_in_pairs_and_triplets(self):
+        # The first 30 will cancel in triplets and the last 20 in pairs
+        number_of_members = 10
+        users = [
+            User.objects.create(name=f"User {i}") for i in range(number_of_members)
+        ]
+
+        # Create a group
+        group = Group.objects.create(
+            title="Test Group", description="Group for testing"
+        )
+
+        group.members.add(*users)
+        balances = []
+        for i in range(0, int((3 / 5) * number_of_members), 3):
+            balances.append(
+                Balance.objects.create(amount=10 + i, user=users[i], group=self.group)
+            )
+            balances.append(
+                Balance.objects.create(
+                    amount=10 + i, user=users[i + 1], group=self.group
+                )
+            )
+            balances.append(
+                Balance.objects.create(
+                    amount=-2 * (10 + i), user=users[i + 2], group=self.group
+                )
+            )
+        for i in range(int((3 / 5) * number_of_members), number_of_members, 2):
+            balances.append(
+                Balance.objects.create(amount=100 + i, user=users[i], group=self.group)
+            )
+            balances.append(
+                Balance.objects.create(
+                    amount=-(100 + i), user=users[i + 1], group=self.group
+                )
+            )
+        calculate_new_debts(group=self.group)
+
+        self.assertEqual(
+            Debt.objects.filter(group=self.group).count(),
+            int((3 / 5) * number_of_members),
+        )
         self.assert_all_debts_paid(balances)

@@ -43,7 +43,7 @@ def get_selection_with_sum(target_sum, selection_length, balances):
     # first_index
     for first_index in range(len(balances) - (selection_length - 1)):
         potential_matching_selection = get_selection_with_sum(
-            target_sum=target_sum - balances[first_index].amount,
+            target_sum=target_sum - float(balances[first_index].amount),
             balances=balances[first_index + 1 :],
             selection_length=selection_length - 1,
         )
