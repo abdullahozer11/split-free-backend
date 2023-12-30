@@ -25,7 +25,7 @@ class Balance(models.Model):
     amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
 
     def __str__(self):
-        return f'User("{self.user.name}"): {self.amount} in {self.group.title}'
+        return f'User("{self.user.name}"): {self.amount}'
 
 
 class Expense(models.Model):
