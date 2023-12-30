@@ -231,15 +231,15 @@ class ExpenseSignalTests(TestCase):
 
         # Check the balance of each user
         self.assertEqual(
-            Balance.objects.filter(group=group, user=users[0]).first().amount,
+            Balance.objects.get(group=group, user=users[0]).amount,
             20.00,
         )
         self.assertEqual(
-            Balance.objects.filter(group=group, user=users[1]).first().amount,
+            Balance.objects.get(group=group, user=users[1]).amount,
             -40.00,
         )
         self.assertEqual(
-            Balance.objects.filter(group=group, user=users[2]).first().amount,
+            Balance.objects.get(group=group, user=users[2]).amount,
             20.00,
         )
 
