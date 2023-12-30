@@ -18,7 +18,7 @@ class GroupSignalTests(TestCase):
         # Reconnect the signal after the test is finished
         post_save.connect(handle_group_created, sender=Group)
 
-    def test_handle_event_created_signal(self):
+    def test_handle_group_created_signal(self):
         # Create three users
         user1 = User.objects.create(name="Apo")
         user2 = User.objects.create(name="Michael")

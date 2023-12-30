@@ -71,7 +71,7 @@ class GroupCRUDTests(TestCase):
         self.assertEqual(response.data, GroupSerializer(group).data)
 
     def test_update_group(self):
-        group = Group.objects.create(title="Conference", description="Tech event")
+        group = Group.objects.create(title="Conference", description="Tech group")
         group.members.set([self.user1])
         data = {
             "title": "Workshop",
@@ -101,16 +101,16 @@ class ExpenseCRUDTests(TestCase):
         self.user1 = User.objects.create(name="User1")
         self.user2 = User.objects.create(name="User2")
 
-        # Create an event for testing
+        # Create a group for testing
         self.group = Group.objects.create(
-            title="Test Event",
-            description="Event for testing",
+            title="Test Group",
+            description="Group for testing",
         )
 
         self.group.members.add(self.user1, self.user2)
 
         # Create associated balances. This usually comes with the creation of
-        # the event using the post method, but as we are unit testing we use the
+        # the group using the post method, but as we are unit testing we use the
         # ORM instead
         Balance.objects.create(user=self.user1, group=self.group, amount=0.00)
         Balance.objects.create(user=self.user2, group=self.group, amount=0.00)
