@@ -104,8 +104,8 @@ class OurAlgoTests(TestCase):
 
     def test_members_cancelling_in_pairs_and_triplets(self):
         ### Setup
-        # The first 30 will cancel in triplets and the last 20 in pairs
-        number_of_members = 10
+        # The first 9 will cancel in triplets and the last 6 in pairs
+        number_of_members = 15
         users = [
             User.objects.create(name=f"User {i}") for i in range(number_of_members)
         ]
