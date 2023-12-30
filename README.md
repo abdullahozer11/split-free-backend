@@ -1,5 +1,15 @@
 # split-free-backend
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](
+    https://opensource.org/licenses/MIT
+)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](
+    https://github.com/psf/black
+)
+[![Code style: isort](https://img.shields.io/badge/code%20style-isort-%231674b1.svg)](
+    https://github.com/PyCQA/isort
+)
+
 ## How to install
 
 - Create a new virtual environment and activate it
