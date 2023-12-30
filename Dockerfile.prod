@@ -1,13 +1,33 @@
+# Use a lightweight base image
 FROM python:3.10-slim
 
+# Set environment variables for Python
+# For not writting bytecode files (.pyc files) in the container
+ENV PYTHONDONTWRITEBYTECODE 1
+# For not buffering Python output but rather write it directly to the console
+ENV PYTHONUNBUFFERED 1
+
+# Set the working directory in the container
 WORKDIR /app
 
+# Install staging dependencies
 COPY requirements requirements
-RUN pip install -r requirements/prod.txt
+RUN pip install --upgrade pip && pip install -r requirements/prod.txt
 
+# Copy the Django project files into the container
 COPY . .
 
-RUN python manage.py makemigrations
+# Run database migrations
 RUN python manage.py migrate
 
+# Collect static files
 RUN python manage.py collectstatic --noinput
+
+# Install Gunicorn
+RUN pip install gunicorn
+
+# Expose port 8000 for Gunicorn
+EXPOSE 8000
+
+# Command to run the application using Gunicorn
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "split_free_backend.wsgi:application"]
