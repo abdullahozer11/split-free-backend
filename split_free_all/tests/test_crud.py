@@ -147,7 +147,7 @@ class ExpenseCRUDTests(TestCase):
             description="Group for testing",
         )
 
-        self.group.members.add(self.user1, self.user2)
+        self.group.members.set([self.user1, self.user2])
 
         # Create associated balances. This usually comes with the creation of
         # the group using the post method, but as we are unit testing we use the
@@ -261,8 +261,8 @@ class DebtTests(TestCase):
                 title="Normal group", description="This group is normal"
             ),
         ]
-        self.groups[0].members.add(*self.users)
-        self.groups[1].members.add(self.users[0], self.users[1])
+        self.groups[0].members.set(self.users)
+        self.groups[1].members.set(self.users[:-1])
 
     def test_get_all_debts(self):
         ### Setup

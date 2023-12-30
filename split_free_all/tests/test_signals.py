@@ -60,7 +60,7 @@ class GroupSignalTests(TestCase):
             description="Breakfast, lunch and dinner",
         )
         # Add the created users to the group
-        self.group.members.add(*self.users)
+        self.group.members.set(self.users)
         # Create the debt with a balance of 0.00 as it would be with the
         # creation of the group
         for user in self.users:
@@ -92,7 +92,7 @@ class GroupSignalTests(TestCase):
         ]
         # Involve all users in all expenses
         for expense in self.expenses:
-            expense.participants.add(*self.users)
+            expense.participants.set(self.users)
 
         # Update the associated debts that are usually updated with the creation
         # of the expense
@@ -222,7 +222,7 @@ class ExpenseSignalTests(TestCase):
 
         # Create a group and add the users to it
         group = Group.objects.create(title="Holidays", description="Great holidays")
-        group.members.add(*users)
+        group.members.set(users)
 
         # Create balances with an amount of 0
         for user in users:
@@ -269,7 +269,7 @@ class ExpenseSignalTests(TestCase):
 
         # Create a group and add the users to it
         group = Group.objects.create(title="Holidays", description="Great holidays")
-        group.members.add(*users)
+        group.members.set(users)
 
         # Create balances with an amount of 0
         for user in users:
@@ -319,7 +319,7 @@ class ExpenseSignalTests(TestCase):
             description="Great holidays",
         )
         # Add the created users to the group
-        self.group.members.add(*self.users)
+        self.group.members.set(self.users)
         # Create the balances with an amount of 0.00 as it would be with the
         # creation of the group
         for user in self.users:
@@ -334,7 +334,7 @@ class ExpenseSignalTests(TestCase):
             payer=self.users[0],
         )
         # Add the created users to the expense
-        self.expense.participants.add(*self.users)
+        self.expense.participants.set(self.users)
         # Update the associated balances that are usually updated with the
         # creation of the expense
         debt_user1 = Balance.objects.get(user=self.users[0], group=self.group)

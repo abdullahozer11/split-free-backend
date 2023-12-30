@@ -33,7 +33,7 @@ class OurAlgoTests(TestCase):
             User.objects.create(name="User3"),
         ]
 
-        self.group.members.add(*users)
+        self.group.members.set(users)
 
         # Create three userGroupDebts one for each of the user
         # The debts must sum up to 0
@@ -58,7 +58,7 @@ class OurAlgoTests(TestCase):
             User.objects.create(name="C"),
             User.objects.create(name="D"),
         ]
-        self.group.members.add(*users)
+        self.group.members.set(users)
 
         balances = [
             Balance.objects.create(amount=0.00, user=users[0], group=self.group),
@@ -80,7 +80,7 @@ class OurAlgoTests(TestCase):
         users = [
             User.objects.create(name=f"User {i}") for i in range(number_of_members)
         ]
-        self.group.members.add(*users)
+        self.group.members.set(users)
 
         balances = []
         for i in range(0, number_of_members, 2):
@@ -115,7 +115,7 @@ class OurAlgoTests(TestCase):
             title="Test Group", description="Group for testing"
         )
 
-        group.members.add(*users)
+        group.members.set(users)
         balances = []
         for i in range(0, int((3 / 5) * number_of_members), 3):
             balances.append(
