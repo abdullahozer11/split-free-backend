@@ -16,6 +16,12 @@ class OurAlgoTests(TestCase):
         for balance in balances:
             self.assertEqual(balance.amount, debt_checker[balance.user])
 
+    def setUp(self):
+        # Create a group
+        self.group = Group.objects.create(
+            title="Test Group", description="Group for testing"
+        )
+
     def test_with_three_users_in_one_group(self):
         # Create some users
         users = [
@@ -24,22 +30,43 @@ class OurAlgoTests(TestCase):
             User.objects.create(name="User3"),
         ]
 
+        self.group.members.add(*users)
+
+        # Create three userGroupDebts one for each of the user
+        # The debts must sum up to 0
+        balances = [
+            Balance.objects.create(amount=-40.00, user=users[0], group=self.group),
+            Balance.objects.create(amount=20.00, user=users[1], group=self.group),
+            Balance.objects.create(amount=20.00, user=users[2], group=self.group),
+        ]
+
+        calculate_new_debts(group=self.group)
+
+        self.assertEqual(Debt.objects.filter(group=self.group).count(), 2)
+        self.assert_all_debts_paid(balances)
+
+    def test_member_with_null_balance(self):
+        users = [
+            User.objects.create(name="A"),
+            User.objects.create(name="B"),
+            User.objects.create(name="C"),
+            User.objects.create(name="D"),
+        ]
+
         # Create a group
         group = Group.objects.create(
             title="Test Group", description="Group for testing"
         )
 
         group.members.add(*users)
-
-        # Create three userGroupDebts one for each of the user
-        # The debts must sum up to 0
         balances = [
-            Balance.objects.create(amount=-40.00, user=users[0], group=group),
-            Balance.objects.create(amount=20.00, user=users[1], group=group),
-            Balance.objects.create(amount=20.00, user=users[2], group=group),
+            Balance.objects.create(amount=0.00, user=users[0], group=self.group),
+            Balance.objects.create(amount=-30.00, user=users[1], group=self.group),
+            Balance.objects.create(amount=25.00, user=users[2], group=self.group),
+            Balance.objects.create(amount=5.00, user=users[3], group=self.group),
         ]
 
-        calculate_new_debts(group=group)
+        calculate_new_debts(group=self.group)
 
-        self.assertEqual(Debt.objects.filter(group=group).count(), 2)
+        self.assertEqual(Debt.objects.filter(group=self.group).count(), 2)
         self.assert_all_debts_paid(balances)
