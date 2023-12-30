@@ -9,6 +9,22 @@ from django.forms.models import model_to_dict
 from split_free_all.algo_debts import calculate_new_debts
 from split_free_all.models import Balance
 
+################################################################################
+# Group
+
+group_created = Signal()
+
+
+@receiver(group_created)
+def handle_group_created(sender, instance, **kwargs):
+    # Create a UserGroupDebt with a value of 0 for each user
+    for user in instance.members.all():
+        Balance.objects.create(user=user, group=instance, amount=0.00)
+
+
+################################################################################
+# Expense
+
 
 def apply_impact_expense(expense_info):
     # In case the payer paid and left, it's free for the other users of the
@@ -45,16 +61,6 @@ def undo_impact_expense(expense_info):
                 float(expense_info["amount"]) / number_users_in_expense
             )
         user_balance.save()
-
-
-group_created = Signal()
-
-
-@receiver(group_created)
-def handle_group_created(sender, instance, **kwargs):
-    # Create a UserGroupDebt with a value of 0 for each user
-    for user in instance.members.all():
-        Balance.objects.create(user=user, group=instance, amount=0.00)
 
 
 expense_created = Signal()

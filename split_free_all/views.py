@@ -16,6 +16,9 @@ from split_free_all.signals import (
     group_created,
 )
 
+################################################################################
+# User
+
 
 class UserList(generics.ListCreateAPIView):
     queryset = User.objects.all()
@@ -25,6 +28,10 @@ class UserList(generics.ListCreateAPIView):
 class UserDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+
+
+################################################################################
+# Group
 
 
 class GroupList(generics.ListCreateAPIView):
@@ -41,6 +48,10 @@ class GroupList(generics.ListCreateAPIView):
 class GroupDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Group.objects.all()
     serializer_class = GroupSerializer
+
+
+################################################################################
+# Expense
 
 
 class ExpenseList(generics.ListCreateAPIView):
