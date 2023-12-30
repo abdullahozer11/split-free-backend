@@ -73,34 +73,38 @@ def apply_impact_expense(expense_info):
     if not expense_info["payer"]:
         return
 
-    number_users_in_expense = len(expense_info["participants"])
-    # Update the balance of each user for this group
+    payer_balance = Balance.objects.get(
+        group=expense_info["group"], user=expense_info["payer"]
+    )
+    payer_balance.amount -= expense_info["amount"]
+    payer_balance.save()
+
+    # This is the amount that each participant needs to pay for the expense
+    split_amount = Decimal(
+        float(expense_info["amount"]) / len(expense_info["participants"])
+    )
+
     for user in expense_info["participants"]:
         user_balance = Balance.objects.get(group=expense_info["group"], user=user)
-        if user.id == expense_info["payer"]:
-            user_balance.amount -= Decimal(
-                float(expense_info["amount"]) * (1 - 1 / number_users_in_expense)
-            )
-        else:
-            user_balance.amount += Decimal(
-                float(expense_info["amount"]) / number_users_in_expense
-            )
+        user_balance.amount += split_amount
         user_balance.save()
 
 
 def undo_impact_expense(expense_info):
-    number_users_in_expense = len(expense_info["participants"])
-    # Update the balance of each user for this group
+    payer_balance = Balance.objects.get(
+        group=expense_info["group"], user=expense_info["payer"]
+    )
+    payer_balance.amount += expense_info["amount"]
+    payer_balance.save()
+
+    # This is the amount that each participant paid for the expense
+    split_amount = Decimal(
+        float(expense_info["amount"]) / len(expense_info["participants"])
+    )
+
     for user in expense_info["participants"]:
         user_balance = Balance.objects.get(group=expense_info["group"], user=user)
-        if user.id == expense_info["payer"]:
-            user_balance.amount += Decimal(
-                float(expense_info["amount"]) * (1 - 1 / number_users_in_expense)
-            )
-        else:
-            user_balance.amount -= Decimal(
-                float(expense_info["amount"]) / number_users_in_expense
-            )
+        user_balance.amount -= split_amount
         user_balance.save()
 
 
