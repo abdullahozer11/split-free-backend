@@ -14,6 +14,7 @@ from split_free_all.signals import (
     expense_destroyed,
     expense_updated,
     group_created,
+    group_updated,
 )
 
 ################################################################################
@@ -48,6 +49,21 @@ class GroupList(generics.ListCreateAPIView):
 class GroupDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Group.objects.all()
     serializer_class = GroupSerializer
+
+    def perform_update(self, serializer):
+        instance = self.get_object()
+        old_group_info = model_to_dict(instance)
+        serializer.save()
+        new_group_info = model_to_dict(serializer.instance)
+
+        if old_group_info["members"] != new_group_info["members"]:
+            # Trigger the custom signal
+            group_updated.send(
+                sender=self.__class__,
+                instance=serializer.instance,
+                old_group_info=old_group_info,
+                new_group_info=new_group_info,
+            )
 
 
 ################################################################################

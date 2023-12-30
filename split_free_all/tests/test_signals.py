@@ -124,6 +124,72 @@ class GroupSignalTests(TestCase):
         self.assertEqual(Balance.objects.filter(group=self.group).count(), 0)
         self.assertEqual(Debt.objects.filter(group=self.group).count(), 0)
 
+    def test_handle_group_updated_signal_added_members(self):
+        self.create_basic_group()
+
+        # Create new users
+        new_members = [
+            User.objects.create(name="Sarah"),
+            User.objects.create(name="Sophie"),
+        ]
+        self.users.extend(new_members)
+
+        # Update the group by adding them as new members
+        new_group_data = {
+            "title": "Day of eating",
+            "description": "Breakfast, lunch and dinner",
+            "members": [user.id for user in self.users],
+        }
+        self.client.put(
+            f"/api/groups/{self.group.id}/",
+            new_group_data,
+            content_type="application/json",
+        )
+
+        self.assertEqual(Group.objects.get(pk=self.group.id).members.count(), 6)
+        self.assertEqual(Balance.objects.filter(group=self.group).count(), 6)
+        for member in new_members:
+            self.assertEqual(
+                Balance.objects.get(group=self.group, user=member).amount, 0.00
+            )
+
+    def test_handle_group_updated_signal_removed_members(self):
+        self.create_basic_group()
+
+        # Remove the last two members of the group
+        new_group_data = {
+            "title": "Day of eating",
+            "description": "Breakfast, lunch and dinner",
+            "members": [user.id for user in self.users[:-2]],
+        }
+        self.client.put(
+            f"/api/groups/{self.group.id}/",
+            new_group_data,
+            content_type="application/json",
+        )
+
+        # Check the group
+        self.assertEqual(Group.objects.get(pk=self.group.id).members.count(), 2)
+
+        # Check the expenses
+        for expense in self.expenses:
+            self.assertEqual(expense.participants.count(), 2)
+
+        # Check the balances
+        self.assertEqual(Balance.objects.filter(group=self.group).count(), 2)
+        # The last balance was paid for by the last user who withdrew so there
+        # is nothing to pay back for this one
+        # User 1: -5 + 10 = 5
+        self.assertEqual(
+            Balance.objects.get(user=self.users[0], group=self.group).amount,
+            5.00,
+        )
+        # User 1: 5 - 10 = -5
+        self.assertEqual(
+            Balance.objects.get(user=self.users[1], group=self.group).amount,
+            -5.00,
+        )
+
 
 class ExpenseSignalTests(TestCase):
     @override_settings(USE_TZ=False)  # Override settings to avoid issues with signals

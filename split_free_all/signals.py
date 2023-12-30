@@ -7,7 +7,7 @@ from django.dispatch import receiver
 from django.forms.models import model_to_dict
 
 from split_free_all.algo_debts import calculate_new_debts
-from split_free_all.models import Balance
+from split_free_all.models import Balance, Expense
 
 ################################################################################
 # Group
@@ -20,6 +20,47 @@ def handle_group_created(sender, instance, **kwargs):
     # Create a UserGroupDebt with a value of 0 for each user
     for user in instance.members.all():
         Balance.objects.create(user=user, group=instance, amount=0.00)
+
+
+group_updated = Signal()
+
+
+@receiver(group_updated)
+def handle_group_updated(sender, instance, old_group_info, new_group_info, **kwargs):
+    # Handle the case: members are added to the group
+    added_members = set(new_group_info["members"]) - set(old_group_info["members"])
+    if added_members:
+        # Create a balance with an amount of 0 for each new added member
+        for member in added_members:
+            Balance.objects.create(user=member, group=instance, amount=0.00)
+
+    # Handle the case: members are removed from the group
+    removed_members = set(old_group_info["members"]) - set(new_group_info["members"])
+    if removed_members:
+        # Update impacted expenses of the group
+        expenses_to_update = Expense.objects.filter(
+            group=instance, participants__in=removed_members
+        ).distinct()
+        new_expenses = []
+        for expense_to_update in expenses_to_update:
+            old_expense_info = model_to_dict(expense_to_update)
+            # If the payer is withing the removed members, it means he withdrew
+            # Therefore, the other expense participants won't have to pay him
+            # back. We set the expense payer to None, and this logic will be
+            # handled in apply_impact_expense
+            if expense_to_update.payer in removed_members:
+                expense_to_update.payer = None
+            expense_to_update.participants.remove(
+                *(set(expense_to_update.participants.all()) & removed_members)
+            )
+            new_expense_info = model_to_dict(expense_to_update)
+            undo_impact_expense(expense_info=old_expense_info)
+            apply_impact_expense(expense_info=new_expense_info)
+
+        # Remove the balances of the removed members
+        Balance.objects.filter(user__in=removed_members).delete()
+
+        calculate_new_debts(group=instance)
 
 
 ################################################################################
