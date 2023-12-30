@@ -202,7 +202,7 @@ class ExpenseSignalTests(TestCase):
         # Reconnect the signal after the test is finished
         post_save.connect(handle_group_created, sender=Group)
 
-    def test_handle_expense_created_signal(self):
+    def test_handle_expense_created_signal_payer_is_participant(self):
         # Create three users
         users = [
             User.objects.create(name="Apo"),
@@ -241,6 +241,51 @@ class ExpenseSignalTests(TestCase):
         self.assertEqual(
             Balance.objects.get(group=group, user=users[2]).amount,
             20.00,
+        )
+
+        # Check that 2 debts are created
+        self.assertEqual(Debt.objects.filter(group=group).count(), 2)
+
+    def test_handle_expense_created_signal_payer_is_not_participant(self):
+        # Create three users
+        users = [
+            User.objects.create(name="Apo"),
+            User.objects.create(name="Michael"),
+            User.objects.create(name="Jeremy"),
+        ]
+
+        # Create a group and add the users to it
+        group = Group.objects.create(title="Holidays", description="Great holidays")
+        group.members.add(*users)
+
+        # Create balances with an amount of 0
+        for user in users:
+            Balance.objects.create(user=user, group=group, amount=0.00)
+
+        # Create an expense with whose participants are only the first and
+        # second users but whose payer is the third user
+        expense_data = {
+            "amount": 60.00,
+            "title": "Dinner",
+            "description": "Expense for dinner",
+            "payer": users[2].id,
+            "group": group.id,
+            "participants": [users[0].id, users[1].id],
+        }
+        self.client.post("/api/expenses/", expense_data)
+
+        # Check the balance of each user
+        self.assertEqual(
+            Balance.objects.get(group=group, user=users[0]).amount,
+            30.00,
+        )
+        self.assertEqual(
+            Balance.objects.get(group=group, user=users[1]).amount,
+            30.00,
+        )
+        self.assertEqual(
+            Balance.objects.get(group=group, user=users[2]).amount,
+            -60.00,
         )
 
         # Check that 2 debts are created
