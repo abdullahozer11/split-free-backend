@@ -25,6 +25,7 @@ class OurAlgoTests(TestCase):
         )
 
     def test_with_three_users_in_one_group(self):
+        ### Setup
         # Create some users
         users = [
             User.objects.create(name="User1"),
@@ -42,12 +43,15 @@ class OurAlgoTests(TestCase):
             Balance.objects.create(amount=20.00, user=users[2], group=self.group),
         ]
 
+        ### Action
         calculate_new_debts(group=self.group)
 
+        ### Checks
         self.assertEqual(Debt.objects.filter(group=self.group).count(), 2)
         self.assert_all_debts_paid(balances)
 
     def test_member_with_null_balance(self):
+        ### Setup
         users = [
             User.objects.create(name="A"),
             User.objects.create(name="B"),
@@ -63,12 +67,15 @@ class OurAlgoTests(TestCase):
             Balance.objects.create(amount=5.00, user=users[3], group=self.group),
         ]
 
+        ### Action
         calculate_new_debts(group=self.group)
 
+        ### Checks
         self.assertEqual(Debt.objects.filter(group=self.group).count(), 2)
         self.assert_all_debts_paid(balances)
 
     def test_members_cancelling_in_pairs(self):
+        ### Setup
         number_of_members = 20
         users = [
             User.objects.create(name=f"User {i}") for i in range(number_of_members)
@@ -85,14 +92,18 @@ class OurAlgoTests(TestCase):
                     amount=-(100 + i), user=users[i + 1], group=self.group
                 )
             )
+
+        ### Action
         calculate_new_debts(group=self.group)
 
+        ### Checks
         self.assertEqual(
             Debt.objects.filter(group=self.group).count(), int(number_of_members / 2)
         )
         self.assert_all_debts_paid(balances)
 
     def test_members_cancelling_in_pairs_and_triplets(self):
+        ### Setup
         # The first 30 will cancel in triplets and the last 20 in pairs
         number_of_members = 10
         users = [
@@ -129,8 +140,11 @@ class OurAlgoTests(TestCase):
                     amount=-(100 + i), user=users[i + 1], group=self.group
                 )
             )
+
+        ### Action
         calculate_new_debts(group=self.group)
 
+        ### Checks
         self.assertEqual(
             Debt.objects.filter(group=self.group).count(),
             int((3 / 5) * number_of_members),

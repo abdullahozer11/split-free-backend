@@ -15,21 +15,36 @@ from split_free_all.serializers import (
 
 class UserCRUDTests(TestCase):
     def test_create_user(self):
+        ### Set up
         data = {"name": "Apo"}
+
+        ### Action
         response = self.client.post("/api/users/", data)
+
+        ### Checks
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(User.objects.count(), 1)
         self.assertEqual(User.objects.get().name, "Apo")
 
     def test_read_user(self):
+        ### Setup
         user = User.objects.create(name="Michael")
+
+        ### Action
         response = self.client.get(f"/api/users/{user.id}/")
+
+        ### Checks
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, UserSerializer(user).data)
 
     def test_update_user(self):
+        ### Setup
         user = User.objects.create(name="Apo")
+
+        ### Action
         data = {"name": "Apo Jean"}
+
+        ### Checks
         response = self.client.put(
             f"/api/users/{user.id}/", data, content_type="application/json"
         )
@@ -38,8 +53,13 @@ class UserCRUDTests(TestCase):
         self.assertEqual(user.name, "Apo Jean")
 
     def test_delete_user(self):
+        ### Setup
         user = User.objects.create(name="Michael")
+
+        ### Action
         response = self.client.delete(f"/api/users/{user.id}/")
+
+        ### Checks
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(User.objects.count(), 0)
 
@@ -51,12 +71,17 @@ class GroupCRUDTests(TestCase):
         self.user2 = User.objects.create(name="User2")
 
     def test_create_group(self):
+        ### Setup
         data = {
             "title": "Birthday Party",
             "description": "A celebration",
             "members": [self.user1.id, self.user2.id],
         }
+
+        ### Action
         response = self.client.post("/api/groups/", data)
+
+        ### Checks
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Group.objects.count(), 1)
         group = Group.objects.get()
@@ -64,13 +89,19 @@ class GroupCRUDTests(TestCase):
         self.assertEqual(group.members.count(), 2)
 
     def test_read_group(self):
+        ### Setup
         group = Group.objects.create(title="Anniversary", description="Special day")
         group.members.set([self.user1, self.user2])
+
+        ### Action
         response = self.client.get(f"/api/groups/{group.id}/")
+
+        ## Checks
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, GroupSerializer(group).data)
 
     def test_update_group(self):
+        ### Setup
         group = Group.objects.create(title="Conference", description="Tech group")
         group.members.set([self.user1])
         data = {
@@ -78,9 +109,13 @@ class GroupCRUDTests(TestCase):
             "description": "Interactive session",
             "members": [self.user2.id],
         }
+
+        ### Action
         response = self.client.put(
             f"/api/groups/{group.id}/", data, content_type="application/json"
         )
+
+        ### Checks
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         group.refresh_from_db()
         self.assertEqual(group.title, "Workshop")
@@ -88,9 +123,14 @@ class GroupCRUDTests(TestCase):
         self.assertEqual(group.members.first().name, "User2")
 
     def test_delete_group(self):
+        ### Setup
         group = Group.objects.create(title="Farewell", description="Goodbye party")
         group.members.set([self.user1, self.user2])
+
+        ### Action
         response = self.client.delete(f"/api/groups/{group.id}/")
+
+        ### Checks
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(Group.objects.count(), 0)
 
@@ -116,6 +156,7 @@ class ExpenseCRUDTests(TestCase):
         Balance.objects.create(user=self.user2, group=self.group, amount=0.00)
 
     def test_create_expense(self):
+        ### Actions
         data = {
             "amount": 50.00,
             "title": "Dinner",
@@ -125,6 +166,8 @@ class ExpenseCRUDTests(TestCase):
             "participants": [self.user1.id, self.user2.id],
         }
         response = self.client.post("/api/expenses/", data)
+
+        ### Checks
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Expense.objects.count(), 1)
         expense = Expense.objects.get()
@@ -133,6 +176,7 @@ class ExpenseCRUDTests(TestCase):
         self.assertEqual(list(expense.participants.all()), [self.user1, self.user2])
 
     def test_read_expense(self):
+        ### Setup
         expense = Expense.objects.create(
             amount=30.00,
             title="Lunch",
@@ -141,12 +185,17 @@ class ExpenseCRUDTests(TestCase):
             group=self.group,
         )
         expense.participants.set([self.user1, self.user2])
+
+        ### Action
         response = self.client.get(f"/api/expenses/{expense.id}/")
+
+        ### Checks
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, ExpenseSerializer(expense).data)
 
     @patch("split_free_all.signals.calculate_new_debts", side_effect=lambda group: None)
     def test_update_expense(self, _):
+        ### Setup
         expense = Expense.objects.create(
             amount=20.00,
             title="Coffee",
@@ -155,6 +204,8 @@ class ExpenseCRUDTests(TestCase):
             group=self.group,
         )
         expense.participants.set([self.user1])
+
+        ### Action
         data = {
             "amount": 25.00,
             "title": "Tea",
@@ -166,6 +217,8 @@ class ExpenseCRUDTests(TestCase):
         response = self.client.put(
             f"/api/expenses/{expense.id}/", data, content_type="application/json"
         )
+
+        ### Checks
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         expense.refresh_from_db()
         self.assertEqual(expense.amount, 25.00)
@@ -174,6 +227,7 @@ class ExpenseCRUDTests(TestCase):
         self.assertEqual(list(expense.participants.all()), [self.user2])
 
     def test_delete_expense(self):
+        ### Setup
         expense = Expense.objects.create(
             amount=40.00,
             title="Snacks",
@@ -182,7 +236,11 @@ class ExpenseCRUDTests(TestCase):
             group=self.group,
         )
         expense.participants.set([self.user1, self.user2])
+
+        ### Action
         response = self.client.delete(f"/api/expenses/{expense.id}/")
+
+        ### Checks
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(Expense.objects.count(), 0)
 
@@ -207,6 +265,7 @@ class DebtTests(TestCase):
         self.groups[1].members.add(self.users[0], self.users[1])
 
     def test_get_all_debts(self):
+        ### Setup
         # Let's create some meaningful debts and get them all
         Debt.objects.create(
             group=self.groups[0],
@@ -228,11 +287,15 @@ class DebtTests(TestCase):
             amount=10.00,
         )
 
+        ### Action
         response = self.client.get(f"/api/debts/")
+
+        ### Checks
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 3)
 
     def test_filter_debts_by_group(self):
+        ### Setup
         Debt.objects.create(
             group=self.groups[0],
             borrower=self.users[0],
@@ -252,9 +315,11 @@ class DebtTests(TestCase):
             amount=10.00,
         )
 
+        ### Action
         # Filter debts for a specific group (groups[0])
         response = self.client.get(f"/api/debts/", {"group_id": self.groups[0].id})
 
+        ### Checks
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 2)
         # Ensure that all debts in the response belong to groups[0]

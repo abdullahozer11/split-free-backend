@@ -19,11 +19,13 @@ class GroupSignalTests(TestCase):
         post_save.connect(handle_group_created, sender=Group)
 
     def test_handle_group_created_signal(self):
+        ### Setup
         # Create three users
         user1 = User.objects.create(name="Apo")
         user2 = User.objects.create(name="Michael")
         user3 = User.objects.create(name="Jeremy")
 
+        ### Action
         # Create a group with these users
         data = {
             "title": "Birthday Party",
@@ -32,6 +34,7 @@ class GroupSignalTests(TestCase):
         }
         response = self.client.post("/api/groups/", data)
 
+        ### Checks
         # Check that Balance objects were created (thanks to the signal)
         group_id = response.data["id"]
         group = Group.objects.get(id=group_id)
@@ -114,10 +117,13 @@ class GroupSignalTests(TestCase):
         debt_user4.save()
 
     def test_handle_group_destroyed_signal(self):
+        ### Setup
         self.create_basic_group()
 
+        ### Action
         self.client.delete(f"/api/groups/{self.group.id}/")
 
+        ### Checks
         # This is the result of cascade deletion cause there is no signals but
         # it's left here, we never know if we add some signals one day
         self.assertEqual(Expense.objects.filter(group=self.group).count(), 0)
@@ -125,6 +131,7 @@ class GroupSignalTests(TestCase):
         self.assertEqual(Debt.objects.filter(group=self.group).count(), 0)
 
     def test_handle_group_updated_signal_added_members(self):
+        ### Setup
         self.create_basic_group()
 
         # Create new users
@@ -134,6 +141,7 @@ class GroupSignalTests(TestCase):
         ]
         self.users.extend(new_members)
 
+        ### Action
         # Update the group by adding them as new members
         new_group_data = {
             "title": "Day of eating",
@@ -146,6 +154,7 @@ class GroupSignalTests(TestCase):
             content_type="application/json",
         )
 
+        ### Checks
         self.assertEqual(Group.objects.get(pk=self.group.id).members.count(), 6)
         self.assertEqual(Balance.objects.filter(group=self.group).count(), 6)
         for member in new_members:
@@ -203,6 +212,7 @@ class ExpenseSignalTests(TestCase):
         post_save.connect(handle_group_created, sender=Group)
 
     def test_handle_expense_created_signal_payer_is_participant(self):
+        ### Setup
         # Create three users
         users = [
             User.objects.create(name="Apo"),
@@ -218,6 +228,7 @@ class ExpenseSignalTests(TestCase):
         for user in users:
             Balance.objects.create(user=user, group=group, amount=0.00)
 
+        ### Action
         # Create an expense with these users
         expense_data = {
             "amount": 60.00,
@@ -229,6 +240,7 @@ class ExpenseSignalTests(TestCase):
         }
         self.client.post("/api/expenses/", expense_data)
 
+        ###Checks
         # Check the balance of each user
         self.assertEqual(
             Balance.objects.get(group=group, user=users[0]).amount,
@@ -247,6 +259,7 @@ class ExpenseSignalTests(TestCase):
         self.assertEqual(Debt.objects.filter(group=group).count(), 2)
 
     def test_handle_expense_created_signal_payer_is_not_participant(self):
+        ### Setup
         # Create three users
         users = [
             User.objects.create(name="Apo"),
@@ -262,6 +275,7 @@ class ExpenseSignalTests(TestCase):
         for user in users:
             Balance.objects.create(user=user, group=group, amount=0.00)
 
+        ### Action
         # Create an expense with whose participants are only the first and
         # second users but whose payer is the third user
         expense_data = {
@@ -274,6 +288,7 @@ class ExpenseSignalTests(TestCase):
         }
         self.client.post("/api/expenses/", expense_data)
 
+        ### Checks
         # Check the balance of each user
         self.assertEqual(
             Balance.objects.get(group=group, user=users[0]).amount,
@@ -335,6 +350,7 @@ class ExpenseSignalTests(TestCase):
         debt_user3.save()
 
     def test_handle_expense_updated_signal_added_users(self):
+        ### Setup
         self.create_basic_expense()
 
         # Create two new users their debts
@@ -348,6 +364,7 @@ class ExpenseSignalTests(TestCase):
         # Add the users to the group
         self.group.members.add(*new_users)
 
+        ### Action
         # Update the expense by adding two users
         new_expense_data = {
             "amount": 60.00,
@@ -358,12 +375,13 @@ class ExpenseSignalTests(TestCase):
             # Only this changes as there are now 4 users
             "participants": [user.id for user in self.users],
         }
-
         self.client.put(
             f"/api/expenses/{self.expense.id}/",
             new_expense_data,
             content_type="application/json",
         )
+
+        ### Checks
         self.assertEqual(self.expense.participants.count(), 5)
         self.assertEqual(Balance.objects.filter(group=self.group).count(), 5)
 
@@ -377,8 +395,10 @@ class ExpenseSignalTests(TestCase):
         self.assertEqual(Debt.objects.filter(group=self.group).count(), 4)
 
     def test_handle_expense_updated_signal_removed_users(self):
+        ### Setup
         self.create_basic_expense()
 
+        ### Action
         new_expense_data = {
             "amount": 60.00,
             "title": "Dinner",
@@ -388,12 +408,13 @@ class ExpenseSignalTests(TestCase):
             # We remove the last user, they are only two now
             "participants": [user.id for user in self.users[:-1]],
         }
-
         self.client.put(
             f"/api/expenses/{self.expense.id}/",
             new_expense_data,
             content_type="application/json",
         )
+
+        ### Checks
         self.assertEqual(self.expense.participants.count(), 2)
 
         expected_debts = [-30.00, 30.00, 0.00]
@@ -406,7 +427,10 @@ class ExpenseSignalTests(TestCase):
         self.assertEqual(Debt.objects.filter(group=self.group).count(), 1)
 
     def test_handle_expense_updated_signal_new_amount(self):
+        ### Setup
         self.create_basic_expense()
+
+        ### Action
         new_expense_data = {
             # The amount has changed from 60.00 to 90.00
             "amount": 90.00,
@@ -416,13 +440,13 @@ class ExpenseSignalTests(TestCase):
             "group": self.group.id,
             "participants": [user.id for user in self.users],
         }
-
         self.client.put(
             f"/api/expenses/{self.expense.id}/",
             new_expense_data,
             content_type="application/json",
         )
 
+        ### Checks
         expected_debts = [-60.00, 30.00, 30.00]
         for user_index, user in enumerate(self.users):
             self.assertEqual(
@@ -433,7 +457,10 @@ class ExpenseSignalTests(TestCase):
         self.assertEqual(Debt.objects.filter(group=self.group).count(), 2)
 
     def test_handle_expense_updated_signal_changed_payer(self):
+        ### Setup
         self.create_basic_expense()
+
+        ### Action
         new_expense_data = {
             "amount": 60.00,
             "title": "Dinner",
@@ -443,13 +470,13 @@ class ExpenseSignalTests(TestCase):
             "group": self.group.id,
             "participants": [user.id for user in self.users],
         }
-
         self.client.put(
             f"/api/expenses/{self.expense.id}/",
             new_expense_data,
             content_type="application/json",
         )
 
+        ### Checks
         expected_debts = [20.00, 20.00, -40.00]
         for user_index, user in enumerate(self.users):
             self.assertEqual(
@@ -460,10 +487,13 @@ class ExpenseSignalTests(TestCase):
         self.assertEqual(Debt.objects.filter(group=self.group).count(), 2)
 
     def test_handle_expense_destroyed(self):
+        ### Setup
         self.create_basic_expense()
 
+        ### Action
         self.client.delete(f"/api/expenses/{self.expense.id}/")
 
+        ### Checks
         for user in self.users:
             self.assertEqual(
                 Balance.objects.get(user=user, group=self.group).amount,
