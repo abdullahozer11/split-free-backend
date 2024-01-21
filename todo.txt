@@ -1,0 +1,4 @@
+T0do 1
+When new member or group is created; a unique identifier (id) will be returned by the serializer.
+T0do 2
+Member can be no attached but a user is always a person. User and member should be distinguished.
