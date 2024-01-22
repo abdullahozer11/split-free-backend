@@ -3,13 +3,13 @@
 from django.forms.models import model_to_dict
 from django.shortcuts import get_object_or_404
 from rest_framework import generics
-from rest_framework.response import Response
 
-from split_free_all.models import Debt, Expense, Group, User
+from split_free_all.models import Debt, Expense, Group, Member, User
 from split_free_all.serializers import (
     DebtSerializer,
     ExpenseSerializer,
     GroupSerializer,
+    MemberSerializer,
     UserSerializer,
 )
 from split_free_all.signals import (
@@ -32,6 +32,20 @@ class UserList(generics.ListCreateAPIView):
 class UserDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+
+
+################################################################################
+# Member
+
+
+class MemberList(generics.ListCreateAPIView):
+    queryset = Member.objects.all()
+    serializer_class = MemberSerializer
+
+
+class MemberDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Member.objects.all()
+    serializer_class = MemberSerializer
 
 
 ################################################################################
