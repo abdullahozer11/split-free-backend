@@ -17,7 +17,7 @@ group_created = Signal()
 
 @receiver(group_created)
 def handle_group_created(sender, instance, **kwargs):
-    # Create a UserGroupDebt with a value of 0 for each user
+    # Create a MemberGroupDebt with a value of 0 for each member
     for member in instance.members.all():
         Balance.objects.create(owner=member, group=instance, amount=0.00)
 
@@ -41,7 +41,6 @@ def handle_group_updated(sender, instance, old_group_info, new_group_info, **kwa
         expenses_to_update = Expense.objects.filter(
             group=instance, participants__in=removed_members
         ).distinct()
-        new_expenses = []
         for expense_to_update in expenses_to_update:
             old_expense_info = model_to_dict(expense_to_update)
             # If the payer is withing the removed members, it means he withdrew
@@ -68,7 +67,7 @@ def handle_group_updated(sender, instance, old_group_info, new_group_info, **kwa
 
 
 def apply_impact_expense(expense_info):
-    # In case the payer paid and left, it's free for the other users of the
+    # In case the payer paid and left, it's free for the other members of the
     # expense
     if not expense_info["payer"]:
         return
