@@ -76,8 +76,8 @@ def get_debts_from(selection):
     while selection:
         debt = Debt(
             group=selection[0].group,
-            borrower=selection[-1].user,
-            lender=selection[0].user,
+            borrower=selection[-1].owner,
+            lender=selection[0].owner,
         )
         # The first element is negative and the last positive, we sum them to
         # "get the difference" and judge which one has more "weight"

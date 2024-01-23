@@ -18,8 +18,8 @@ group_created = Signal()
 @receiver(group_created)
 def handle_group_created(sender, instance, **kwargs):
     # Create a UserGroupDebt with a value of 0 for each user
-    for user in instance.members.all():
-        Balance.objects.create(user=user, group=instance, amount=0.00)
+    for member in instance.members.all():
+        Balance.objects.create(owner=member, group=instance, amount=0.00)
 
 
 group_updated = Signal()
@@ -32,7 +32,7 @@ def handle_group_updated(sender, instance, old_group_info, new_group_info, **kwa
     if added_members:
         # Create a balance with an amount of 0 for each new added member
         for member in added_members:
-            Balance.objects.create(user=member, group=instance, amount=0.00)
+            Balance.objects.create(owner=member, group=instance, amount=0.00)
 
     # Handle the case: members are removed from the group
     removed_members = set(old_group_info["members"]) - set(new_group_info["members"])
@@ -58,7 +58,7 @@ def handle_group_updated(sender, instance, old_group_info, new_group_info, **kwa
             apply_impact_expense(expense_info=new_expense_info)
 
         # Remove the balances of the removed members
-        Balance.objects.filter(user__in=removed_members).delete()
+        Balance.objects.filter(owner__in=removed_members).delete()
 
         calculate_new_debts(group=instance)
 
@@ -74,7 +74,7 @@ def apply_impact_expense(expense_info):
         return
 
     payer_balance = Balance.objects.get(
-        group=expense_info["group"], user=expense_info["payer"]
+        group=expense_info["group"], owner=expense_info["payer"]
     )
     payer_balance.amount -= expense_info["amount"]
     payer_balance.save()
@@ -84,15 +84,15 @@ def apply_impact_expense(expense_info):
         float(expense_info["amount"]) / len(expense_info["participants"])
     )
 
-    for user in expense_info["participants"]:
-        user_balance = Balance.objects.get(group=expense_info["group"], user=user)
-        user_balance.amount += split_amount
-        user_balance.save()
+    for member in expense_info["participants"]:
+        member_balance = Balance.objects.get(group=expense_info["group"], owner=member)
+        member_balance.amount += split_amount
+        member_balance.save()
 
 
 def undo_impact_expense(expense_info):
     payer_balance = Balance.objects.get(
-        group=expense_info["group"], user=expense_info["payer"]
+        group=expense_info["group"], owner=expense_info["payer"]
     )
     payer_balance.amount += expense_info["amount"]
     payer_balance.save()
@@ -102,10 +102,10 @@ def undo_impact_expense(expense_info):
         float(expense_info["amount"]) / len(expense_info["participants"])
     )
 
-    for user in expense_info["participants"]:
-        user_balance = Balance.objects.get(group=expense_info["group"], user=user)
-        user_balance.amount -= split_amount
-        user_balance.save()
+    for member in expense_info["participants"]:
+        member_balance = Balance.objects.get(group=expense_info["group"], owner=member)
+        member_balance.amount -= split_amount
+        member_balance.save()
 
 
 expense_created = Signal()
