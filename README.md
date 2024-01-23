@@ -33,6 +33,12 @@ pip install -r requirements/dev.txt
 pre-commit install
 ```
 
+- As dev, set the pre-push hook that assures tests are passing before pushing
+
+```bash
+cp ./.pre-push.sh ./.git/hooks/pre-push
+```
+
 ## How to install with docker
 
 ### For production or staging environments
