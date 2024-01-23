@@ -25,7 +25,7 @@ python -m venv .venv
 pip install -r requirements/base.txt
 ```
 
-- (Optional) as dev, install the dev dependencies and set up the pre-commit
+- As dev, install the dev dependencies and set up the pre-commit
   hooks
 
 ```bash
