@@ -2,6 +2,7 @@
   "cSpell.language": "en",
   "cSpell.words": [
     "ASGI",
+    "corsheaders",
     "Dockerfiles",
     "initialised",
     "isort",
