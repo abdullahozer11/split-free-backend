@@ -37,8 +37,6 @@ pre-commit install
 
 ```bash
 cp ./.pre-push.sh ./.git/hooks/pre-push
-chmod +x ./.git/hooks/pre-push
-/.pre-push.sh
 ```
 
 ## How to install with docker
