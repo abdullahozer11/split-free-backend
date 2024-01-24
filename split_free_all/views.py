@@ -138,7 +138,7 @@ class ExpenseDetail(generics.RetrieveUpdateDestroyAPIView):
 # Debt
 
 
-class DebtListView(generics.ListAPIView):
+class DebtList(generics.ListAPIView):
     serializer_class = DebtSerializer
 
     def get_queryset(self):

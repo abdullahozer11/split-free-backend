@@ -4,7 +4,7 @@
 from django.urls import path
 
 from split_free_all.views import (
-    DebtListView,
+    DebtList,
     ExpenseDetail,
     ExpenseList,
     GroupDetail,
@@ -16,7 +16,7 @@ from split_free_all.views import (
 )
 
 urlpatterns = [
-    path("debts/", DebtListView.as_view(), name="debt-list"),
+    path("debts/", DebtList.as_view(), name="debt-list"),
     path("users/", UserList.as_view(), name="user-list"),
     path("users/<int:pk>/", UserDetail.as_view(), name="user-detail"),
     path("members/", MemberList.as_view(), name="member-list"),
