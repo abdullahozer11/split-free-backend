@@ -148,3 +148,19 @@ class DebtList(generics.ListAPIView):
             return Debt.objects.filter(group=group)
 
         return Debt.objects.all()
+
+
+################################################################################
+# Balance
+
+
+class BalanceList(generics.ListAPIView):
+    serializer_class = DebtSerializer
+
+    def get_queryset(self):
+        group_id = self.request.query_params.get("group_id")
+        if group_id:
+            group = get_object_or_404(Group, pk=group_id)
+            return Debt.objects.filter(group=group)
+
+        return Debt.objects.all()
