@@ -18,7 +18,7 @@ class GroupSignalTests(TestCase):
         # Reconnect the signal after the test is finished
         post_save.connect(handle_group_created, sender=Group)
 
-    def test_handle_group_created_signal(self):
+    def test_handle_group_created_signal_with_existing_members(self):
         ### Setup
         # Create three members
         member1 = Member.objects.create(name="Apo")
@@ -43,6 +43,36 @@ class GroupSignalTests(TestCase):
 
         # Check that the balance is set to 0.0 for each member
         for member in [member1, member2, member3]:
+            balance = Balance.objects.get(owner=member)
+            self.assertEqual(balance.amount, 0.0)
+
+    def test_handle_group_created_passing_member_names(self):
+        ### Setup
+
+        ### Action
+        # Create a group with these members
+        data = {
+            "title": "Birthday Party",
+            "description": "A celebration",
+            "member_names": ["Apo", "Michael", "Jeremy"],
+        }
+        response = self.client.post(
+            "/api/groups/", data, content_type="application/json"
+        )
+
+        ### Checks
+        # Check that 3 members were created in that group
+        members = Member.objects.filter(group=response.data["id"])
+        self.assertEqual(members.count(), 3)
+
+        # Check that Balance objects were created
+        group_id = response.data["id"]
+        group = Group.objects.get(id=group_id)
+        balances = Balance.objects.filter(group=group)
+        self.assertEqual(balances.count(), 3)
+
+        # Check that the balance is set to 0.0 for each member
+        for member in members:
             balance = Balance.objects.get(owner=member)
             self.assertEqual(balance.amount, 0.0)
 

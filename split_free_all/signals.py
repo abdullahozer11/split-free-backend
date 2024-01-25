@@ -7,7 +7,7 @@ from django.dispatch import receiver
 from django.forms.models import model_to_dict
 
 from split_free_all.algo_debts import calculate_new_debts
-from split_free_all.models import Balance, Expense
+from split_free_all.models import Balance, Expense, Member
 
 ################################################################################
 # Group
@@ -16,9 +16,19 @@ group_created = Signal()
 
 
 @receiver(group_created)
-def handle_group_created(sender, instance, **kwargs):
+def handle_group_created(sender, instance, member_names, **kwargs):
+    # Create members from the member_names passed in the request
+    members = []
+    if member_names:
+        for member_name in member_names:
+            members.append(Member.objects.create(name=member_name, group=instance))
+        instance.members.set(members)
+    # Otherwise, use the members are already created objects
+    else:
+        members = instance.members.all()
+
     # Create a MemberGroupDebt with a value of 0 for each member
-    for member in instance.members.all():
+    for member in members:
         Balance.objects.create(owner=member, group=instance, amount=0.00)
 
 

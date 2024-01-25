@@ -59,8 +59,14 @@ class GroupList(generics.ListCreateAPIView):
     def perform_create(self, serializer):
         serializer.save()
 
+        member_names = self.request.data.get("member_names", [])
+
         # Trigger the custom signal
-        group_created.send(sender=self.__class__, instance=serializer.instance)
+        group_created.send(
+            sender=self.__class__,
+            instance=serializer.instance,
+            member_names=member_names,
+        )
 
 
 class GroupDetail(generics.RetrieveUpdateDestroyAPIView):

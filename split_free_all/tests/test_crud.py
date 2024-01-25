@@ -70,7 +70,7 @@ class GroupCRUDTests(TestCase):
         self.member1 = Member.objects.create(name="Member1")
         self.member2 = Member.objects.create(name="Member2")
 
-    def test_create_group(self):
+    def test_create_group_with_existing_members(self):
         ### Setup
         data = {
             "title": "Birthday Party",
@@ -80,6 +80,26 @@ class GroupCRUDTests(TestCase):
 
         ### Action
         response = self.client.post("/api/groups/", data)
+
+        ### Checks
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(Group.objects.count(), 1)
+        group = Group.objects.get()
+        self.assertEqual(group.title, "Birthday Party")
+        self.assertEqual(group.members.count(), 2)
+
+    def test_create_group_passing_member_names(self):
+        ### Setup
+        data = {
+            "title": "Birthday Party",
+            "description": "A celebration",
+            "member_names": ["Michael", "Apollon"],  # Guess who autocompleted that
+        }
+
+        ### Action
+        response = self.client.post(
+            "/api/groups/", data, content_type="application/json"
+        )
 
         ### Checks
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
