@@ -18,6 +18,10 @@ class Member(models.Model):
     def __str__(self):
         return f'Member("{self.name}")'
 
+    class Meta:
+        # Ensure that the combination of 'name' and 'group' is unique
+        unique_together = ["name", "group"]
+
 
 class Group(models.Model):
     title = models.CharField(max_length=255, default=None)
