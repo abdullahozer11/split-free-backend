@@ -28,6 +28,9 @@ class Group(models.Model):
         Member, blank=True, null=True, related_name="group_members"
     )
 
+    def __str__(self):
+        return f'Group("{self.title}")'
+
 
 class Balance(models.Model):
     owner = models.ForeignKey(Member, blank=True, null=True, on_delete=models.CASCADE)
