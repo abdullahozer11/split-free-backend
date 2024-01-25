@@ -26,14 +26,12 @@ class OurAlgoTests(TestCase):
 
     def test_with_three_members_in_one_group(self):
         ### Setup
-        # Create some members
+        # Create some members and add them to the group
         members = [
-            Member.objects.create(name="Member1"),
-            Member.objects.create(name="Member2"),
-            Member.objects.create(name="Member3"),
+            Member.objects.create(name="Member1", group=self.group),
+            Member.objects.create(name="Member2", group=self.group),
+            Member.objects.create(name="Member3", group=self.group),
         ]
-
-        self.group.members.set(members)
 
         # Create three memberGroupDebts one for each of the member
         # The debts must sum up to 0
@@ -53,12 +51,11 @@ class OurAlgoTests(TestCase):
     def test_member_with_null_balance(self):
         ### Setup
         members = [
-            Member.objects.create(name="A"),
-            Member.objects.create(name="B"),
-            Member.objects.create(name="C"),
-            Member.objects.create(name="D"),
+            Member.objects.create(name="A", group=self.group),
+            Member.objects.create(name="B", group=self.group),
+            Member.objects.create(name="C", group=self.group),
+            Member.objects.create(name="D", group=self.group),
         ]
-        self.group.members.set(members)
 
         balances = [
             Balance.objects.create(amount=0.00, owner=members[0], group=self.group),
@@ -78,9 +75,9 @@ class OurAlgoTests(TestCase):
         ### Setup
         number_of_members = 20
         members = [
-            Member.objects.create(name=f"Member {i}") for i in range(number_of_members)
+            Member.objects.create(name=f"Member {i}", group=self.group)
+            for i in range(number_of_members)
         ]
-        self.group.members.set(members)
 
         balances = []
         for i in range(0, number_of_members, 2):
@@ -106,16 +103,17 @@ class OurAlgoTests(TestCase):
 
     def test_members_cancelling_in_pairs_and_triplets(self):
         ### Setup
-        # The first 9 will cancel in triplets and the last 6 in pairs
-        number_of_members = 15
-        members = [
-            Member.objects.create(name=f"Member {i}") for i in range(number_of_members)
-        ]
-
         # Create a group
         group = Group.objects.create(
             title="Test Group", description="Group for testing"
         )
+
+        # The first 9 will cancel in triplets and the last 6 in pairs
+        number_of_members = 15
+        members = [
+            Member.objects.create(name=f"Member {i}", group=group)
+            for i in range(number_of_members)
+        ]
 
         group.members.set(members)
         balances = []

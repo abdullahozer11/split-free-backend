@@ -18,79 +18,46 @@ class GroupSignalTests(TestCase):
         # Reconnect the signal after the test is finished
         post_save.connect(handle_group_created, sender=Group)
 
-    def test_handle_group_created_signal_with_existing_members(self):
+    def test_handle_group_created_signal(self):
         ### Setup
-        # Create three members
-        member1 = Member.objects.create(name="Apo")
-        member2 = Member.objects.create(name="Michael")
-        member3 = Member.objects.create(name="Jeremy")
-
-        ### Action
-        # Create a group with these members
-        data = {
-            "title": "Birthday Party",
-            "description": "A celebration",
-            "members": [member1.id, member2.id, member3.id],
-        }
-        response = self.client.post("/api/groups/", data)
-
-        ### Checks
-        # Check that Balance objects were created (thanks to the signal)
-        group_id = response.data["id"]
-        group = Group.objects.get(id=group_id)
-        balances = Balance.objects.filter(group=group)
-        self.assertEqual(balances.count(), 3)
-
-        # Check that the balance is set to 0.0 for each member
-        for member in [member1, member2, member3]:
-            balance = Balance.objects.get(owner=member)
-            self.assertEqual(balance.amount, 0.0)
-
-    def test_handle_group_created_passing_member_names(self):
-        ### Setup
-
-        ### Action
-        # Create a group with these members
         data = {
             "title": "Birthday Party",
             "description": "A celebration",
             "member_names": ["Apo", "Michael", "Jeremy"],
         }
+
+        ### Action
+        # Create a group with  these members
         response = self.client.post(
             "/api/groups/", data, content_type="application/json"
         )
 
         ### Checks
-        # Check that 3 members were created in that group
-        members = Member.objects.filter(group=response.data["id"])
-        self.assertEqual(members.count(), 3)
-
-        # Check that Balance objects were created
         group_id = response.data["id"]
         group = Group.objects.get(id=group_id)
+        # Check that the members have been created
+        self.assertEqual(Member.objects.filter(group=group).count(), 3)
+        # Check that Balance objects were created (thanks to the signal)
         balances = Balance.objects.filter(group=group)
         self.assertEqual(balances.count(), 3)
 
         # Check that the balance is set to 0.0 for each member
-        for member in members:
-            balance = Balance.objects.get(owner=member)
+        for balance in balances:
             self.assertEqual(balance.amount, 0.0)
 
     def create_basic_group(self):
-        # Create members
-        self.members = [
-            Member.objects.create(name="Apo"),
-            Member.objects.create(name="Michael"),
-            Member.objects.create(name="Jake"),
-            Member.objects.create(name="John"),
-        ]
-        # Create an group with these members
+        # Create a group
         self.group = Group.objects.create(
             title="Day of eating",
             description="Breakfast, lunch and dinner",
         )
-        # Add the created members to the group
-        self.group.members.set(self.members)
+        # Create members for this group
+        self.members = [
+            Member.objects.create(name="Apo", group=self.group),
+            Member.objects.create(name="Michael", group=self.group),
+            Member.objects.create(name="Jake", group=self.group),
+            Member.objects.create(name="John", group=self.group),
+        ]
         # Create the debt with a balance of 0.00 as it would be with the
         # creation of the group
         for member in self.members:
@@ -163,21 +130,16 @@ class GroupSignalTests(TestCase):
     def test_handle_group_updated_signal_added_members(self):
         ### Setup
         self.create_basic_group()
+        new_member_names = ["Sarah", "Sophie"]
 
-        # Create new members
-        new_members = [
-            Member.objects.create(name="Sarah"),
-            Member.objects.create(name="Sophie"),
-        ]
-        self.members.extend(new_members)
-
-        ### Action
         # Update the group by adding them as new members
         new_group_data = {
             "title": "Day of eating",
             "description": "Breakfast, lunch and dinner",
-            "members": [member.id for member in self.members],
+            "member_names": [member.name for member in self.members] + new_member_names,
         }
+
+        ### Action
         self.client.put(
             f"/api/groups/{self.group.id}/",
             new_group_data,
@@ -187,30 +149,35 @@ class GroupSignalTests(TestCase):
         ### Checks
         self.assertEqual(Group.objects.get(pk=self.group.id).members.count(), 6)
         self.assertEqual(Balance.objects.filter(group=self.group).count(), 6)
+        new_members = Member.objects.filter(name__in=new_member_names)
         for member in new_members:
             self.assertEqual(
                 Balance.objects.get(group=self.group, owner=member).amount, 0.00
             )
 
     def test_handle_group_updated_signal_removed_members(self):
+        ### Setup
         self.create_basic_group()
 
         # Remove the last two members of the group
         new_group_data = {
             "title": "Day of eating",
             "description": "Breakfast, lunch and dinner",
-            "members": [member.id for member in self.members[:-2]],
+            "member_names": [member.name for member in self.members[:-2]],
         }
+        ### Action
         self.client.put(
             f"/api/groups/{self.group.id}/",
             new_group_data,
             content_type="application/json",
         )
 
+        ### Checks
         # Check the group
         self.assertEqual(Group.objects.get(pk=self.group.id).members.count(), 2)
 
         # Check the expenses
+        # On the last expense, the participants are all removed
         for expense in self.expenses:
             self.assertEqual(expense.participants.count(), 2)
 
@@ -243,16 +210,15 @@ class ExpenseSignalTests(TestCase):
 
     def test_handle_expense_created_signal_payer_is_participant(self):
         ### Setup
-        # Create three members
-        members = [
-            Member.objects.create(name="Apo"),
-            Member.objects.create(name="Michael"),
-            Member.objects.create(name="Jeremy"),
-        ]
-
-        # Create a group and add the members to it
+        # Create a group
         group = Group.objects.create(title="Holidays", description="Great holidays")
-        group.members.set(members)
+
+        # Create three members and add them to the group
+        members = [
+            Member.objects.create(name="Apo", group=group),
+            Member.objects.create(name="Michael", group=group),
+            Member.objects.create(name="Jeremy", group=group),
+        ]
 
         # Create balances with an amount of 0
         for member in members:
@@ -290,16 +256,15 @@ class ExpenseSignalTests(TestCase):
 
     def test_handle_expense_created_signal_payer_is_not_participant(self):
         ### Setup
-        # Create three members
-        members = [
-            Member.objects.create(name="Apo"),
-            Member.objects.create(name="Michael"),
-            Member.objects.create(name="Jeremy"),
-        ]
-
-        # Create a group and add the members to it
+        # Create a group
         group = Group.objects.create(title="Holidays", description="Great holidays")
-        group.members.set(members)
+
+        # Create three members and add them to the group
+        members = [
+            Member.objects.create(name="Apo", group=group),
+            Member.objects.create(name="Michael", group=group),
+            Member.objects.create(name="Jeremy", group=group),
+        ]
 
         # Create balances with an amount of 0
         for member in members:
@@ -338,17 +303,17 @@ class ExpenseSignalTests(TestCase):
         self.assertEqual(Debt.objects.filter(group=group).count(), 2)
 
     def create_basic_expense(self):
-        # Create members
-        self.members = [
-            Member.objects.create(name="Apo"),
-            Member.objects.create(name="Michael"),
-            Member.objects.create(name="Jake"),
-        ]
-        # Create an group with these members
+        # Create a group
         self.group = Group.objects.create(
             title="Holidays",
             description="Great holidays",
         )
+        # Create members and add them to the group
+        self.members = [
+            Member.objects.create(name="Apo", group=self.group),
+            Member.objects.create(name="Michael", group=self.group),
+            Member.objects.create(name="Jake", group=self.group),
+        ]
         # Add the created members to the group
         self.group.members.set(self.members)
         # Create the balances with an amount of 0.00 as it would be with the
@@ -386,14 +351,12 @@ class ExpenseSignalTests(TestCase):
 
         # Create two new members their debts
         new_members = [
-            Member.objects.create(name="Maxim"),
-            Member.objects.create(name="Clement"),
+            Member.objects.create(name="Maxim", group=self.group),
+            Member.objects.create(name="Clement", group=self.group),
         ]
         self.members.extend(new_members)
         for member in new_members:
             Balance.objects.create(owner=member, group=self.group, amount=0.00)
-        # Add the members to the group
-        self.group.members.add(*new_members)
 
         ### Action
         # Update the expense by adding two members

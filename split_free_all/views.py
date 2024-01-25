@@ -74,19 +74,18 @@ class GroupDetail(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = GroupSerializer
 
     def perform_update(self, serializer):
-        instance = self.get_object()
-        old_group_info = model_to_dict(instance)
         serializer.save()
-        new_group_info = model_to_dict(serializer.instance)
 
-        if old_group_info["members"] != new_group_info["members"]:
-            # Trigger the custom signal
-            group_updated.send(
-                sender=self.__class__,
-                instance=serializer.instance,
-                old_group_info=old_group_info,
-                new_group_info=new_group_info,
-            )
+        old_member_names = [member.name for member in serializer.instance.members.all()]
+        new_member_names = self.request.data.get("member_names", [])
+
+        # Trigger the custom signal
+        group_updated.send(
+            sender=self.__class__,
+            instance=serializer.instance,
+            old_member_names=old_member_names,
+            new_member_names=new_member_names,
+        )
 
 
 ################################################################################

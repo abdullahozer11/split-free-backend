@@ -36,17 +36,23 @@ group_updated = Signal()
 
 
 @receiver(group_updated)
-def handle_group_updated(sender, instance, old_group_info, new_group_info, **kwargs):
+def handle_group_updated(
+    sender, instance, old_member_names, new_member_names, **kwargs
+):
     # Handle the case: members are added to the group
-    added_members = set(new_group_info["members"]) - set(old_group_info["members"])
-    if added_members:
-        # Create a balance with an amount of 0 for each new added member
-        for member in added_members:
+    added_member_names = set(new_member_names) - set(old_member_names)
+    if added_member_names:
+        # Create these new members and associate them a balance of 0
+        for member_name in added_member_names:
+            member = Member.objects.create(name=member_name, group=instance)
             Balance.objects.create(owner=member, group=instance, amount=0.00)
 
     # Handle the case: members are removed from the group
-    removed_members = set(old_group_info["members"]) - set(new_group_info["members"])
-    if removed_members:
+    removed_member_names = set(old_member_names) - set(new_member_names)
+    if removed_member_names:
+        removed_members = Member.objects.filter(
+            name__in=removed_member_names, group=instance
+        )
         # Update impacted expenses of the group
         expenses_to_update = Expense.objects.filter(
             group=instance, participants__in=removed_members
@@ -59,15 +65,15 @@ def handle_group_updated(sender, instance, old_group_info, new_group_info, **kwa
             # handled in apply_impact_expense
             if expense_to_update.payer in removed_members:
                 expense_to_update.payer = None
-            expense_to_update.participants.remove(
-                *(set(expense_to_update.participants.all()) & removed_members)
-            )
+            # Remove the removed members from the expense participants
+            for removed_member in removed_members:
+                if removed_member in expense_to_update.participants.all():
+                    expense_to_update.participants.remove(removed_member)
             new_expense_info = model_to_dict(expense_to_update)
             undo_impact_expense(expense_info=old_expense_info)
             apply_impact_expense(expense_info=new_expense_info)
-
-        # Remove the balances of the removed members
-        Balance.objects.filter(owner__in=removed_members).delete()
+        # Remove the members, the balances will be removed by the on_delete
+        removed_members.delete()
 
         calculate_new_debts(group=instance)
 

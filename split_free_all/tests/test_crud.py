@@ -14,9 +14,16 @@ from split_free_all.serializers import (
 
 
 class MemberCRUDTests(TestCase):
+    def setUp(self):
+        # Create a group for testing
+        self.group = Group.objects.create(
+            title="Test Group",
+            description="Group for testing",
+        )
+
     def test_create_member(self):
         ### Set up
-        data = {"name": "Apo"}
+        data = {"name": "Apo", "group": self.group.id}
 
         ### Action
         response = self.client.post("/api/members/", data)
@@ -28,7 +35,7 @@ class MemberCRUDTests(TestCase):
 
     def test_read_member(self):
         ### Setup
-        member = Member.objects.create(name="Michael")
+        member = Member.objects.create(name="Michael", group=self.group)
 
         ### Action
         response = self.client.get(f"/api/members/{member.id}/")
@@ -39,10 +46,10 @@ class MemberCRUDTests(TestCase):
 
     def test_update_member(self):
         ### Setup
-        member = Member.objects.create(name="Apo")
+        member = Member.objects.create(name="Apo", group=self.group)
 
         ### Action
-        data = {"name": "Apo Jean"}
+        data = {"name": "Apo Jean", "group": self.group.id}
 
         ### Checks
         response = self.client.put(
@@ -54,7 +61,7 @@ class MemberCRUDTests(TestCase):
 
     def test_delete_member(self):
         ### Setup
-        member = Member.objects.create(name="Michael")
+        member = Member.objects.create(name="Michael", group=self.group)
 
         ### Action
         response = self.client.delete(f"/api/members/{member.id}/")
@@ -65,30 +72,17 @@ class MemberCRUDTests(TestCase):
 
 
 class GroupCRUDTests(TestCase):
-    def setUp(self):
-        # Create some members for testing
-        self.member1 = Member.objects.create(name="Member1")
-        self.member2 = Member.objects.create(name="Member2")
+    def create_group_with_orm(self):
+        self.group = Group.objects.create(
+            title="Anniversary", description="Special day"
+        )
+        # Create two members for this group
+        self.members = [
+            Member.objects.create(name="Member1", group=self.group),
+            Member.objects.create(name="Member2", group=self.group),
+        ]
 
-    def test_create_group_with_existing_members(self):
-        ### Setup
-        data = {
-            "title": "Birthday Party",
-            "description": "A celebration",
-            "members": [self.member1.id, self.member2.id],
-        }
-
-        ### Action
-        response = self.client.post("/api/groups/", data)
-
-        ### Checks
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(Group.objects.count(), 1)
-        group = Group.objects.get()
-        self.assertEqual(group.title, "Birthday Party")
-        self.assertEqual(group.members.count(), 2)
-
-    def test_create_group_passing_member_names(self):
+    def test_create_group(self):
         ### Setup
         data = {
             "title": "Birthday Party",
@@ -104,51 +98,48 @@ class GroupCRUDTests(TestCase):
         ### Checks
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Group.objects.count(), 1)
-        group = Group.objects.get()
-        self.assertEqual(group.title, "Birthday Party")
-        self.assertEqual(group.members.count(), 2)
+        created_group = Group.objects.get()
+        self.assertEqual(created_group.title, "Birthday Party")
+        self.assertEqual(created_group.members.count(), 2)
 
     def test_read_group(self):
         ### Setup
-        group = Group.objects.create(title="Anniversary", description="Special day")
-        group.members.set([self.member1, self.member2])
+        self.create_group_with_orm()
 
         ### Action
-        response = self.client.get(f"/api/groups/{group.id}/")
+        response = self.client.get(f"/api/groups/{self.group.id}/")
 
         ## Checks
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data, GroupSerializer(group).data)
+        self.assertEqual(response.data, GroupSerializer(self.group).data)
 
     def test_update_group(self):
         ### Setup
-        group = Group.objects.create(title="Conference", description="Tech group")
-        group.members.set([self.member1])
+        self.create_group_with_orm()
         data = {
             "title": "Workshop",
             "description": "Interactive session",
-            "members": [self.member2.id],
+            "member_names": ["Member2"],
         }
 
         ### Action
         response = self.client.put(
-            f"/api/groups/{group.id}/", data, content_type="application/json"
+            f"/api/groups/{self.group.id}/", data, content_type="application/json"
         )
 
         ### Checks
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        group.refresh_from_db()
-        self.assertEqual(group.title, "Workshop")
-        self.assertEqual(group.members.count(), 1)
-        self.assertEqual(group.members.first().name, "Member2")
+        self.group.refresh_from_db()
+        self.assertEqual(self.group.title, "Workshop")
+        self.assertEqual(self.group.members.count(), 1)
+        self.assertEqual(self.group.members.first().name, "Member2")
 
     def test_delete_group(self):
         ### Setup
-        group = Group.objects.create(title="Farewell", description="Goodbye party")
-        group.members.set([self.member1, self.member2])
+        self.create_group_with_orm()
 
         ### Action
-        response = self.client.delete(f"/api/groups/{group.id}/")
+        response = self.client.delete(f"/api/groups/{self.group.id}/")
 
         ### Checks
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
@@ -157,17 +148,15 @@ class GroupCRUDTests(TestCase):
 
 class ExpenseCRUDTests(TestCase):
     def setUp(self):
-        # Create some members for testing
-        self.member1 = Member.objects.create(name="Member1")
-        self.member2 = Member.objects.create(name="Member2")
-
         # Create a group for testing
         self.group = Group.objects.create(
             title="Test Group",
             description="Group for testing",
         )
 
-        self.group.members.set([self.member1, self.member2])
+        # Create some members for testing
+        self.member1 = Member.objects.create(name="Member1", group=self.group)
+        self.member2 = Member.objects.create(name="Member2", group=self.group)
 
         # Create associated balances. This usually comes with the creation of
         # the group using the post method, but as we are unit testing we use the
@@ -267,12 +256,6 @@ class ExpenseCRUDTests(TestCase):
 
 class DebtTests(TestCase):
     def setUp(self):
-        self.members = [
-            Member.objects.create(name="Apo"),
-            Member.objects.create(name="Michael"),
-            Member.objects.create(name="George"),
-        ]
-
         self.groups = [
             Group.objects.create(
                 title="Friend group", description="This group is friendly"
@@ -281,8 +264,16 @@ class DebtTests(TestCase):
                 title="Normal group", description="This group is normal"
             ),
         ]
-        self.groups[0].members.set(self.members)
-        self.groups[1].members.set(self.members[:-1])
+
+        self.members = [
+            # Members of groups[0]
+            Member.objects.create(name="Apo", group=self.groups[0]),
+            Member.objects.create(name="Michael", group=self.groups[0]),
+            Member.objects.create(name="George", group=self.groups[0]),
+            # Members of groups[1]
+            Member.objects.create(name="Apo", group=self.groups[1]),
+            Member.objects.create(name="Michael", group=self.groups[1]),
+        ]
 
     def test_get_all_debts(self):
         ### Setup
