@@ -4,8 +4,9 @@ from django.forms.models import model_to_dict
 from django.shortcuts import get_object_or_404
 from rest_framework import generics
 
-from split_free_all.models import Debt, Expense, Group, Member, User
+from split_free_all.models import Balance, Debt, Expense, Group, Member, User
 from split_free_all.serializers import (
+    BalanceSerializer,
     DebtSerializer,
     ExpenseSerializer,
     GroupSerializer,
@@ -155,12 +156,5 @@ class DebtList(generics.ListAPIView):
 
 
 class BalanceList(generics.ListAPIView):
-    serializer_class = DebtSerializer
-
-    def get_queryset(self):
-        group_id = self.request.query_params.get("group_id")
-        if group_id:
-            group = get_object_or_404(Group, pk=group_id)
-            return Debt.objects.filter(group=group)
-
-        return Debt.objects.all()
+    queryset = Balance.objects.all()
+    serializer_class = BalanceSerializer
