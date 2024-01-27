@@ -180,3 +180,5 @@ class BalanceList(generics.ListAPIView):
         if group_id:
             group = get_object_or_404(Group, pk=group_id)
             return Balance.objects.filter(group=group)
+
+        return Balance.objects.all()
