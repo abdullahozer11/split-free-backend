@@ -2,6 +2,13 @@
 
 from django.db import models
 
+CURRENCY_CHOICES = [
+    ("EUR", "Euro"),
+    ("USD", "US Dollar"),
+    ("GBP", "British Pound"),
+    ("TRY", "Turkish lira"),
+]
+
 
 class User(models.Model):
     name = models.CharField(max_length=255)
@@ -33,6 +40,7 @@ class Group(models.Model):
 
 class Balance(models.Model):
     owner = models.ForeignKey(Member, blank=True, null=True, on_delete=models.CASCADE)
+    currency = models.CharField(max_length=4, choices=CURRENCY_CHOICES, default="EUR")
     group = models.ForeignKey(Group, on_delete=models.CASCADE, default=None)
     amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
 
@@ -44,7 +52,7 @@ class Expense(models.Model):
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     title = models.CharField(max_length=255, default=None)
     description = models.TextField()
-    currency = models.CharField(max_length=4, default="EUR")
+    currency = models.CharField(max_length=4, choices=CURRENCY_CHOICES, default="EUR")
     payer = models.ForeignKey(
         Member, on_delete=models.SET_NULL, null=True, blank=True, related_name="payer"
     )
@@ -58,6 +66,7 @@ class Expense(models.Model):
 
 class Debt(models.Model):
     amount = models.DecimalField(max_digits=10, decimal_places=2)
+    currency = models.CharField(max_length=4, choices=CURRENCY_CHOICES, default="EUR")
     borrower = models.ForeignKey(
         Member, on_delete=models.CASCADE, related_name="borrower"
     )
