@@ -43,6 +43,12 @@ class MemberList(generics.ListCreateAPIView):
     queryset = Member.objects.all()
     serializer_class = MemberSerializer
 
+    def get_queryset(self):
+        group_id = self.request.query_params.get("group_id")
+        if group_id:
+            group = get_object_or_404(Group, pk=group_id)
+            return Member.objects.filter(group=group)
+
 
 class MemberDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Member.objects.all()
@@ -103,6 +109,12 @@ class ExpenseList(generics.ListCreateAPIView):
         # Trigger the custom signal
         expense_created.send(sender=self.__class__, instance=serializer.instance)
 
+    def get_queryset(self):
+        group_id = self.request.query_params.get("group_id")
+        if group_id:
+            group = get_object_or_404(Group, pk=group_id)
+            return Expense.objects.filter(group=group)
+
 
 class ExpenseDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Expense.objects.all()
@@ -158,3 +170,9 @@ class DebtList(generics.ListAPIView):
 class BalanceList(generics.ListAPIView):
     queryset = Balance.objects.all()
     serializer_class = BalanceSerializer
+
+    def get_queryset(self):
+        group_id = self.request.query_params.get("group_id")
+        if group_id:
+            group = get_object_or_404(Group, pk=group_id)
+            return Balance.objects.filter(group=group)
