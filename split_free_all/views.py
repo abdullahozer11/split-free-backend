@@ -49,6 +49,8 @@ class MemberList(generics.ListCreateAPIView):
             group = get_object_or_404(Group, pk=group_id)
             return Member.objects.filter(group=group)
 
+        return Member.objects.all()
+
 
 class MemberDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Member.objects.all()
@@ -114,6 +116,8 @@ class ExpenseList(generics.ListCreateAPIView):
         if group_id:
             group = get_object_or_404(Group, pk=group_id)
             return Expense.objects.filter(group=group)
+
+        return Expense.objects.all()
 
 
 class ExpenseDetail(generics.RetrieveUpdateDestroyAPIView):
