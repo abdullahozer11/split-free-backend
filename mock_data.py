@@ -1,6 +1,6 @@
 # python manage.py shell < mock_data.py
 
-from split_free_all.models import Expense, Group, Member
+from split_free_all.models import Balance, Expense, Group, Member
 
 group1 = Group.objects.create(
     title="Apartment 101", description="Home related purchases"
@@ -8,6 +8,9 @@ group1 = Group.objects.create(
 member1 = Member.objects.create(name="Alice", group=group1)
 member2 = Member.objects.create(name="Bob", group=group1)
 member3 = Member.objects.create(name="Charlie", group=group1)
+Balance.objects.create(amount=0, owner=member1, group=group1)
+Balance.objects.create(amount=0, owner=member2, group=group1)
+Balance.objects.create(amount=0, owner=member3, group=group1)
 group1.members.set([member1, member2, member3])
 expense1 = Expense.objects.create(
     group=group1,
@@ -25,6 +28,8 @@ group2 = Group.objects.create(
 )
 member4 = Member.objects.create(name="Samantha", group=group2)
 member5 = Member.objects.create(name="Omar", group=group2)
+Balance.objects.create(amount=0, owner=member4, group=group2)
+Balance.objects.create(amount=0, owner=member5, group=group2)
 group2.members.set([member4, member5])
 expense2 = Expense.objects.create(
     group=group2,
@@ -41,6 +46,9 @@ group3 = Group.objects.create(title="OWW", description="We had a lunch once")
 member6 = Member.objects.create(name="Louis", group=group3)
 member7 = Member.objects.create(name="Apo", group=group3)
 member8 = Member.objects.create(name="Michael", group=group3)
+Balance.objects.create(amount=0, owner=member6, group=group3)
+Balance.objects.create(amount=0, owner=member7, group=group3)
+Balance.objects.create(amount=0, owner=member8, group=group3)
 group3.members.set([member6, member7, member8])
 expense3 = Expense.objects.create(
     group=group3,
