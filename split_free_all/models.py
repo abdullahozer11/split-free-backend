@@ -39,7 +39,9 @@ class Group(models.Model):
 
 
 class Balance(models.Model):
-    owner = models.ForeignKey(Member, blank=True, null=True, on_delete=models.CASCADE)
+    owner = models.OneToOneField(
+        Member, blank=True, null=True, on_delete=models.CASCADE
+    )
     currency = models.CharField(max_length=4, choices=CURRENCY_CHOICES, default="EUR")
     group = models.ForeignKey(Group, on_delete=models.CASCADE, default=None)
     amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
