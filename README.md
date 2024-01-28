@@ -63,29 +63,10 @@ pre-commit install
 
 ### For development
 
-1. **Build the Docker image:**
+1. Rename *.env.dev-sample* to *.env.dev*
+
+1. **Build the images and run the containers:**
 
     ```bash
-    docker build -f Dockerfile.dev -t split-free-backend-dev .
-    ```
-
-2. **Run the Docker container (run the API):**
-
-    ```bash
-    docker run -p 8000:8000 split-free-backend-dev
-    ```
-
-3. **Alternatively, run other Django commands:**
-
-    - Migrations
-
-    ```bash
-    docker run -it split-free-backend-dev python manage.py makemigrations
-    docker run -it split-free-backend-dev python manage.py migrate
-    ```
-
-    - Tests
-
-    ```bash
-    docker run -it split-free-backend-dev python manage.py test
+    docker-compose -f docker-compose.staging.yml up -d --build
     ```
