@@ -85,7 +85,7 @@ class MemberCRUDTests(BaseAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         member.refresh_from_db()
-        self.assertEqual(member.name, "Apo Jea")
+        self.assertEqual(member.name, "Apo Jean")
 
     def test_delete_member(self):
         ### Setup
