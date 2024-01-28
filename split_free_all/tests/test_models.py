@@ -1,3 +1,4 @@
+from django.db import IntegrityError
 from django.test import TestCase
 
 from split_free_all.models import Group, Member, User
@@ -13,13 +14,9 @@ class MemberModelTest(TestCase):
     def test_unique_member_name_within_group(self):
         # Create two members with the same name within the same group
         member1 = Member.objects.create(name="Alice", group=self.group)
-        member2 = Member.objects.create(name="Alice", group=self.group)
 
-        # Attempting to create the second member should raise a ValidationError
-        with self.assertRaises(
-            Exception
-        ):  # Replace Exception with the specific validation error class
-            member2.full_clean()
+        with self.assertRaises(IntegrityError):
+            member2 = Member.objects.create(name="Alice", group=self.group)
 
     def test_unique_member_name_across_groups(self):
         # Create members with the same name but in different groups
