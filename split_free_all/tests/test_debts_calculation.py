@@ -1,4 +1,4 @@
-import random
+# Copyright (c) 2023 SplitFree Org.
 
 from django.test import TestCase
 
