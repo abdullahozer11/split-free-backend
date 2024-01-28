@@ -182,6 +182,7 @@ class ExpenseCRUDTests(TestCase):
         expense = Expense.objects.get()
         self.assertEqual(expense.title, "Dinner")
         self.assertEqual(expense.payer, self.member1)
+        self.assertEqual(expense.currency, "EUR")
         self.assertEqual(list(expense.participants.all()), [self.member1, self.member2])
 
     def test_read_expense(self):
