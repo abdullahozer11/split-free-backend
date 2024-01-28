@@ -2,7 +2,11 @@
 
 from django.forms.models import model_to_dict
 from django.shortcuts import get_object_or_404
-from rest_framework import generics
+from rest_framework import generics, status
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from split_free_all.models import Balance, Debt, Expense, Group, Member, User
 from split_free_all.serializers import (
@@ -26,11 +30,13 @@ from split_free_all.signals import (
 
 
 class UserList(generics.ListCreateAPIView):
+    permission_classes = (IsAuthenticated,)
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
 
 class UserDetail(generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = (IsAuthenticated,)
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
@@ -40,6 +46,7 @@ class UserDetail(generics.RetrieveUpdateDestroyAPIView):
 
 
 class MemberList(generics.ListCreateAPIView):
+    permission_classes = (IsAuthenticated,)
     queryset = Member.objects.all()
     serializer_class = MemberSerializer
 
@@ -53,6 +60,7 @@ class MemberList(generics.ListCreateAPIView):
 
 
 class MemberDetail(generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = (IsAuthenticated,)
     queryset = Member.objects.all()
     serializer_class = MemberSerializer
 
@@ -62,6 +70,7 @@ class MemberDetail(generics.RetrieveUpdateDestroyAPIView):
 
 
 class GroupList(generics.ListCreateAPIView):
+    permission_classes = (IsAuthenticated,)
     queryset = Group.objects.all()
     serializer_class = GroupSerializer
 
@@ -79,6 +88,7 @@ class GroupList(generics.ListCreateAPIView):
 
 
 class GroupDetail(generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = (IsAuthenticated,)
     queryset = Group.objects.all()
     serializer_class = GroupSerializer
 
@@ -102,6 +112,7 @@ class GroupDetail(generics.RetrieveUpdateDestroyAPIView):
 
 
 class ExpenseList(generics.ListCreateAPIView):
+    permission_classes = (IsAuthenticated,)
     queryset = Expense.objects.all()
     serializer_class = ExpenseSerializer
 
@@ -121,6 +132,7 @@ class ExpenseList(generics.ListCreateAPIView):
 
 
 class ExpenseDetail(generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = (IsAuthenticated,)
     queryset = Expense.objects.all()
     serializer_class = ExpenseSerializer
 
@@ -156,6 +168,7 @@ class ExpenseDetail(generics.RetrieveUpdateDestroyAPIView):
 
 
 class DebtList(generics.ListAPIView):
+    permission_classes = (IsAuthenticated,)
     serializer_class = DebtSerializer
 
     def get_queryset(self):
@@ -172,6 +185,7 @@ class DebtList(generics.ListAPIView):
 
 
 class BalanceList(generics.ListAPIView):
+    permission_classes = (IsAuthenticated,)
     queryset = Balance.objects.all()
     serializer_class = BalanceSerializer
 
@@ -182,3 +196,20 @@ class BalanceList(generics.ListAPIView):
             return Balance.objects.filter(group=group)
 
         return Balance.objects.all()
+
+
+################################################################################
+# Logout
+
+
+class LogoutView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        try:
+            refresh_token = request.data["refresh_token"]
+            token = RefreshToken(refresh_token)
+            token.blacklist()
+            return Response(status=status.HTTP_205_RESET_CONTENT)
+        except Exception:
+            return Response(status=status.HTTP_400_BAD_REQUEST)

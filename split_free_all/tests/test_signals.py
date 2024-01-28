@@ -1,15 +1,33 @@
 # Copyright (c) 2023 SplitFree Org.
-
+from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.test import TestCase, override_settings
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from split_free_all.models import Balance, Debt, Expense, Group, Member
 from split_free_all.signals import handle_group_created
 
 
-class GroupSignalTests(TestCase):
+class BaseAPITestCase(TestCase):
+    def setUp(self):
+        super().setUp()
+        # Create a test user
+        self.user = User.objects.create_user(
+            username="testuser", password="testpassword"
+        )
+
+        # Obtain a valid access token for the test user
+        refresh = RefreshToken.for_user(self.user)
+        self.access_token = str(refresh.access_token)
+
+    def get_auth_headers(self):
+        return {"Authorization": f"Bearer {self.access_token}"}
+
+
+class GroupSignalTests(BaseAPITestCase):
     @override_settings(USE_TZ=False)  # Override settings to avoid issues with signals
     def setUp(self):
+        super().setUp()
         # Disconnect the signal before the test starts
         post_save.disconnect(handle_group_created, sender=Group)
 
@@ -29,7 +47,11 @@ class GroupSignalTests(TestCase):
         ### Action
         # Create a group with  these members
         response = self.client.post(
-            "/api/groups/", data, content_type="application/json"
+            "/api/groups/",
+            data,
+            content_type="application/json",
+            format="json",
+            headers=self.get_auth_headers(),
         )
 
         ### Checks
@@ -118,7 +140,11 @@ class GroupSignalTests(TestCase):
         self.create_basic_group()
 
         ### Action
-        self.client.delete(f"/api/groups/{self.group.id}/")
+        self.client.delete(
+            f"/api/groups/{self.group.id}/",
+            format="json",
+            headers=self.get_auth_headers(),
+        )
 
         ### Checks
         # This is the result of cascade deletion cause there is no signals but
@@ -144,6 +170,8 @@ class GroupSignalTests(TestCase):
             f"/api/groups/{self.group.id}/",
             new_group_data,
             content_type="application/json",
+            format="json",
+            headers=self.get_auth_headers(),
         )
 
         ### Checks
@@ -170,6 +198,8 @@ class GroupSignalTests(TestCase):
             f"/api/groups/{self.group.id}/",
             new_group_data,
             content_type="application/json",
+            format="json",
+            headers=self.get_auth_headers(),
         )
 
         ### Checks
@@ -197,9 +227,10 @@ class GroupSignalTests(TestCase):
         )
 
 
-class ExpenseSignalTests(TestCase):
+class ExpenseSignalTests(BaseAPITestCase):
     @override_settings(USE_TZ=False)  # Override settings to avoid issues with signals
     def setUp(self):
+        super().setUp()
         # Disconnect the signal before the test starts
         post_save.disconnect(handle_group_created, sender=Group)
 
@@ -234,7 +265,12 @@ class ExpenseSignalTests(TestCase):
             "group": group.id,
             "participants": [member.id for member in members],
         }
-        self.client.post("/api/expenses/", expense_data)
+        self.client.post(
+            "/api/expenses/",
+            expense_data,
+            format="json",
+            headers=self.get_auth_headers(),
+        )
 
         ###Checks
         # Check the balance of each member
@@ -282,7 +318,12 @@ class ExpenseSignalTests(TestCase):
             "group": group.id,
             "participants": [members[0].id, members[1].id],
         }
-        self.client.post("/api/expenses/", expense_data)
+        self.client.post(
+            "/api/expenses/",
+            expense_data,
+            format="json",
+            headers=self.get_auth_headers(),
+        )
 
         ### Checks
         # Check the balance of each member
@@ -373,6 +414,8 @@ class ExpenseSignalTests(TestCase):
             f"/api/expenses/{self.expense.id}/",
             new_expense_data,
             content_type="application/json",
+            format="json",
+            headers=self.get_auth_headers(),
         )
 
         ### Checks
@@ -406,6 +449,8 @@ class ExpenseSignalTests(TestCase):
             f"/api/expenses/{self.expense.id}/",
             new_expense_data,
             content_type="application/json",
+            format="json",
+            headers=self.get_auth_headers(),
         )
 
         ### Checks
@@ -438,6 +483,8 @@ class ExpenseSignalTests(TestCase):
             f"/api/expenses/{self.expense.id}/",
             new_expense_data,
             content_type="application/json",
+            format="json",
+            headers=self.get_auth_headers(),
         )
 
         ### Checks
@@ -468,6 +515,8 @@ class ExpenseSignalTests(TestCase):
             f"/api/expenses/{self.expense.id}/",
             new_expense_data,
             content_type="application/json",
+            format="json",
+            headers=self.get_auth_headers(),
         )
 
         ### Checks
@@ -485,7 +534,11 @@ class ExpenseSignalTests(TestCase):
         self.create_basic_expense()
 
         ### Action
-        self.client.delete(f"/api/expenses/{self.expense.id}/")
+        self.client.delete(
+            f"/api/expenses/{self.expense.id}/",
+            format="json",
+            headers=self.get_auth_headers(),
+        )
 
         ### Checks
         for member in self.members:

@@ -2,8 +2,10 @@
 
 from unittest.mock import patch
 
+from django.contrib.auth.models import User
 from django.test import TestCase
 from rest_framework import status
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from split_free_all.models import Balance, Debt, Expense, Group, Member
 from split_free_all.serializers import (
@@ -13,8 +15,26 @@ from split_free_all.serializers import (
 )
 
 
-class MemberCRUDTests(TestCase):
+class BaseAPITestCase(TestCase):
     def setUp(self):
+        super().setUp()
+        # Create a test user
+        self.user = User.objects.create_user(
+            username="testuser", password="testpassword"
+        )
+
+        # Obtain a valid access token for the test user
+        refresh = RefreshToken.for_user(self.user)
+        self.access_token = str(refresh.access_token)
+
+    def get_auth_headers(self):
+        return {"Authorization": f"Bearer {self.access_token}"}
+
+
+class MemberCRUDTests(BaseAPITestCase):
+    def setUp(self):
+        super().setUp()
+
         # Create a group for testing
         self.group = Group.objects.create(
             title="Test Group",
@@ -26,7 +46,9 @@ class MemberCRUDTests(TestCase):
         data = {"name": "Apo", "group": self.group.id}
 
         ### Action
-        response = self.client.post("/api/members/", data)
+        response = self.client.post(
+            "/api/members/", data, format="json", headers=self.get_auth_headers()
+        )
 
         ### Checks
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -38,7 +60,9 @@ class MemberCRUDTests(TestCase):
         member = Member.objects.create(name="Michael", group=self.group)
 
         ### Action
-        response = self.client.get(f"/api/members/{member.id}/")
+        response = self.client.get(
+            f"/api/members/{member.id}/", format="json", headers=self.get_auth_headers()
+        )
 
         ### Checks
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -53,7 +77,11 @@ class MemberCRUDTests(TestCase):
 
         ### Checks
         response = self.client.put(
-            f"/api/members/{member.id}/", data, content_type="application/json"
+            f"/api/members/{member.id}/",
+            data,
+            content_type="application/json",
+            format="json",
+            headers=self.get_auth_headers(),
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         member.refresh_from_db()
@@ -64,14 +92,16 @@ class MemberCRUDTests(TestCase):
         member = Member.objects.create(name="Michael", group=self.group)
 
         ### Action
-        response = self.client.delete(f"/api/members/{member.id}/")
+        response = self.client.delete(
+            f"/api/members/{member.id}/", format="json", headers=self.get_auth_headers()
+        )
 
         ### Checks
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(Member.objects.count(), 0)
 
 
-class GroupCRUDTests(TestCase):
+class GroupCRUDTests(BaseAPITestCase):
     def create_group_with_orm(self):
         self.group = Group.objects.create(
             title="Anniversary", description="Special day"
@@ -92,7 +122,11 @@ class GroupCRUDTests(TestCase):
 
         ### Action
         response = self.client.post(
-            "/api/groups/", data, content_type="application/json"
+            "/api/groups/",
+            data,
+            content_type="application/json",
+            format="json",
+            headers=self.get_auth_headers(),
         )
 
         ### Checks
@@ -107,7 +141,11 @@ class GroupCRUDTests(TestCase):
         self.create_group_with_orm()
 
         ### Action
-        response = self.client.get(f"/api/groups/{self.group.id}/")
+        response = self.client.get(
+            f"/api/groups/{self.group.id}/",
+            format="json",
+            headers=self.get_auth_headers(),
+        )
 
         ## Checks
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -124,7 +162,11 @@ class GroupCRUDTests(TestCase):
 
         ### Action
         response = self.client.put(
-            f"/api/groups/{self.group.id}/", data, content_type="application/json"
+            f"/api/groups/{self.group.id}/",
+            data,
+            content_type="application/json",
+            format="json",
+            headers=self.get_auth_headers(),
         )
 
         ### Checks
@@ -139,15 +181,20 @@ class GroupCRUDTests(TestCase):
         self.create_group_with_orm()
 
         ### Action
-        response = self.client.delete(f"/api/groups/{self.group.id}/")
+        response = self.client.delete(
+            f"/api/groups/{self.group.id}/",
+            format="json",
+            headers=self.get_auth_headers(),
+        )
 
         ### Checks
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(Group.objects.count(), 0)
 
 
-class ExpenseCRUDTests(TestCase):
+class ExpenseCRUDTests(BaseAPITestCase):
     def setUp(self):
+        super().setUp()
         # Create a group for testing
         self.group = Group.objects.create(
             title="Test Group",
@@ -174,7 +221,9 @@ class ExpenseCRUDTests(TestCase):
             "group": self.group.id,
             "participants": [self.member1.id, self.member2.id],
         }
-        response = self.client.post("/api/expenses/", data)
+        response = self.client.post(
+            "/api/expenses/", data, format="json", headers=self.get_auth_headers()
+        )
 
         ### Checks
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -197,7 +246,11 @@ class ExpenseCRUDTests(TestCase):
         expense.participants.set([self.member1, self.member2])
 
         ### Action
-        response = self.client.get(f"/api/expenses/{expense.id}/")
+        response = self.client.get(
+            f"/api/expenses/{expense.id}/",
+            format="json",
+            headers=self.get_auth_headers(),
+        )
 
         ### Checks
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -225,7 +278,11 @@ class ExpenseCRUDTests(TestCase):
             "participants": [self.member2.id],
         }
         response = self.client.put(
-            f"/api/expenses/{expense.id}/", data, content_type="application/json"
+            f"/api/expenses/{expense.id}/",
+            data,
+            content_type="application/json",
+            format="json",
+            headers=self.get_auth_headers(),
         )
 
         ### Checks
@@ -248,15 +305,21 @@ class ExpenseCRUDTests(TestCase):
         expense.participants.set([self.member1, self.member2])
 
         ### Action
-        response = self.client.delete(f"/api/expenses/{expense.id}/")
+        response = self.client.delete(
+            f"/api/expenses/{expense.id}/",
+            format="json",
+            headers=self.get_auth_headers(),
+        )
 
         ### Checks
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(Expense.objects.count(), 0)
 
 
-class DebtTests(TestCase):
+class DebtTests(BaseAPITestCase):
     def setUp(self):
+        super().setUp()
+
         self.groups = [
             Group.objects.create(
                 title="Friend group", description="This group is friendly"
@@ -300,7 +363,9 @@ class DebtTests(TestCase):
         )
 
         ### Action
-        response = self.client.get(f"/api/debts/")
+        response = self.client.get(
+            f"/api/debts/", format="json", headers=self.get_auth_headers()
+        )
 
         ### Checks
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -329,7 +394,12 @@ class DebtTests(TestCase):
 
         ### Action
         # Filter debts for a specific group (groups[0])
-        response = self.client.get(f"/api/debts/", {"group_id": self.groups[0].id})
+        response = self.client.get(
+            f"/api/debts/",
+            {"group_id": self.groups[0].id},
+            format="json",
+            headers=self.get_auth_headers(),
+        )
 
         ### Checks
         self.assertEqual(response.status_code, status.HTTP_200_OK)
