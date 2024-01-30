@@ -7,9 +7,19 @@ from split_free_all.models import Balance, Debt, Expense, Group, Member, User
 
 
 class UserSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(
+        write_only=True, style={"input_type": "password"}, required=True
+    )
+
     class Meta:
         model = User
-        fields = "__all__"
+        fields = ["email", "password"]
+
+    def create(self, validated_data):
+        user = User(email=validated_data["email"])
+        user.set_password(validated_data["password"])
+        user.save()
+        return user
 
 
 class MemberSerializer(serializers.ModelSerializer):

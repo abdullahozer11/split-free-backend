@@ -2,7 +2,7 @@
 # urls.py
 
 from django.urls import path
-from rest_framework_simplejwt import views as jwt_views
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from split_free_all.views import (
     BalanceList,
@@ -11,6 +11,7 @@ from split_free_all.views import (
     ExpenseList,
     GroupDetail,
     GroupList,
+    LogoutView,
     MemberDetail,
     MemberList,
     UserDetail,
@@ -29,6 +30,7 @@ urlpatterns = [
     path("expenses/", ExpenseList.as_view(), name="expense-list"),
     path("expenses/<int:pk>/", ExpenseDetail.as_view(), name="expense-detail"),
     # Token authentication
-    path("token/", jwt_views.TokenObtainPairView.as_view(), name="token_obtain_pair"),
-    path("token/refresh/", jwt_views.TokenRefreshView.as_view(), name="token_refresh"),
+    path("token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
+    path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
+    path("logout/", LogoutView.as_view(), name="logout"),
 ]

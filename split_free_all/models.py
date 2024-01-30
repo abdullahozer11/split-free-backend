@@ -1,5 +1,7 @@
 # Copyright (c) 2023 SplitFree Org.
 
+from django.contrib.auth.base_user import AbstractBaseUser
+from django.contrib.auth.models import AbstractUser, UserManager
 from django.db import models
 
 CURRENCY_CHOICES = [
@@ -10,11 +12,17 @@ CURRENCY_CHOICES = [
 ]
 
 
-class User(models.Model):
-    name = models.CharField(max_length=255)
+class User(AbstractBaseUser):
+    username = models.CharField(max_length=32, null=True)
+    email = models.CharField(unique=True, max_length=128, default="example@hotmail.com")
+    password = models.CharField(max_length=32, null=True)
+    is_active = models.BooleanField(default=True)
+
+    USERNAME_FIELD = "email"
+    objects = UserManager()
 
     def __str__(self):
-        return f'User("{self.name}")'
+        return f'User("{self.email}")'
 
 
 class Member(models.Model):

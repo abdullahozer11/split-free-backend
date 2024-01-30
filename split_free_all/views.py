@@ -4,6 +4,7 @@ from django.forms.models import model_to_dict
 from django.shortcuts import get_object_or_404
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.renderers import TemplateHTMLRenderer
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -30,13 +31,11 @@ from split_free_all.signals import (
 
 
 class UserList(generics.ListCreateAPIView):
-    permission_classes = (IsAuthenticated,)
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
 
 class UserDetail(generics.RetrieveUpdateDestroyAPIView):
-    permission_classes = (IsAuthenticated,)
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
@@ -204,6 +203,8 @@ class BalanceList(generics.ListAPIView):
 
 class LogoutView(APIView):
     permission_classes = (IsAuthenticated,)
+    renderer_classes = [TemplateHTMLRenderer]
+    template_name = "logout.html"
 
     def post(self, request):
         try:
@@ -213,3 +214,6 @@ class LogoutView(APIView):
             return Response(status=status.HTTP_205_RESET_CONTENT)
         except Exception:
             return Response(status=status.HTTP_400_BAD_REQUEST)
+
+    def get(self, request):
+        return Response({"refresh_token": ""})

@@ -79,7 +79,7 @@ ROOT_URLCONF = "split_free_backend.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": ["templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -153,3 +153,5 @@ STATIC_ROOT = "/app/staticfiles/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 APPEND_SLASH = True
+
+AUTH_USER_MODEL = "split_free_all.User"

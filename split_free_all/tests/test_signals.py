@@ -1,11 +1,10 @@
 # Copyright (c) 2023 SplitFree Org.
 
-from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.test import TestCase, override_settings
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from split_free_all.models import Balance, Debt, Expense, Group, Member
+from split_free_all.models import Balance, Debt, Expense, Group, Member, User
 from split_free_all.signals import handle_group_created
 
 
@@ -13,8 +12,8 @@ class BaseAPITestCase(TestCase):
     def setUp(self):
         super().setUp()
         # Create a test user
-        self.user = User.objects.create_user(
-            username="testuser", password="testpassword"
+        self.user = User.objects.create(
+            email="testuser@splitmail.com", password="testpassword"
         )
 
         # Obtain a valid access token for the test user
