@@ -68,5 +68,5 @@ pre-commit install
 1. **Build the images and run the containers:**
 
     ```bash
-    docker-compose -f docker-compose.staging.yml up -d --build
+    docker-compose -f docker-compose.yml up -d --build
     ```
