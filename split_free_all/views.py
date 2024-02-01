@@ -34,6 +34,33 @@ class UserList(generics.ListCreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
+    def perform_create(self, serializer):
+        # Save the user
+        user = serializer.save()
+
+        # Get tokens
+        refresh = RefreshToken.for_user(user)
+        access_token = str(refresh.access_token)
+
+        # Build the response data
+        response_data = {
+            "refresh": str(refresh),
+            "access": access_token,
+        }
+
+        # Set the response status and data
+        self.response_status = status.HTTP_201_CREATED
+        self.response_data = response_data
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(
+            self.response_data, status=self.response_status, headers=headers
+        )
+
 
 class UserDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = User.objects.all()
