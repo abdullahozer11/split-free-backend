@@ -1,7 +1,6 @@
 # Copyright (c) 2023 SplitFree Org.
 
 from django.forms.models import model_to_dict
-from django.shortcuts import get_object_or_404
 from rest_framework import generics, status
 from rest_framework.decorators import permission_classes
 from rest_framework.permissions import BasePermission, IsAuthenticated
@@ -93,18 +92,21 @@ class MemberView(generics.ListCreateAPIView):
     serializer_class = MemberSerializer
 
     def get_queryset(self):
-        group_id = self.request.query_params.get("group_id")
-        if group_id:
-            group = get_object_or_404(Group, pk=group_id)
-            return Member.objects.filter(group=group)
+        query1 = Member.objects.filter(group__users=self.request.user)
+        group_id = self.request.query_params.get("group_id", None)
+        if group_id is not None:
+            query2 = query1.filter(group__id=group_id)
+            return query2
 
-        return Member.objects.all()
+        return query1
 
 
 class MemberDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = (IsAuthenticated,)
-    queryset = Member.objects.all()
     serializer_class = MemberSerializer
+
+    def get_queryset(self):
+        return Member.objects.filter(group__users=self.request.user)
 
 
 ################################################################################
@@ -133,8 +135,10 @@ class GroupView(generics.ListCreateAPIView):
 
 class GroupDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = (IsAuthenticated,)
-    queryset = Group.objects.all()
     serializer_class = GroupSerializer
+
+    def get_queryset(self):
+        return Group.objects.filter(users=self.request.user)
 
     def perform_update(self, serializer):
         serializer.save()
@@ -155,31 +159,30 @@ class GroupDetailView(generics.RetrieveUpdateDestroyAPIView):
 # Expense
 
 
-class ExpenseView(generics.ListCreateAPIView):
+class BaseExpenseView(generics.GenericAPIView):
     permission_classes = (IsAuthenticated,)
-    queryset = Expense.objects.all()
     serializer_class = ExpenseSerializer
 
+    def get_queryset(self):
+        user_expenses = Expense.objects.filter(group__users=self.request.user)
+        group_id = self.request.query_params.get("group_id")
+
+        if group_id:
+            group_expenses = user_expenses.filter(group=group_id)
+            return group_expenses
+
+        return user_expenses
+
+
+class ExpenseView(generics.ListCreateAPIView, BaseExpenseView):
     def perform_create(self, serializer):
         serializer.save()
 
         # Trigger the custom signal
         expense_created.send(sender=self.__class__, instance=serializer.instance)
 
-    def get_queryset(self):
-        group_id = self.request.query_params.get("group_id")
-        if group_id:
-            group = get_object_or_404(Group, pk=group_id)
-            return Expense.objects.filter(group=group)
 
-        return Expense.objects.all()
-
-
-class ExpenseDetailView(generics.RetrieveUpdateDestroyAPIView):
-    permission_classes = (IsAuthenticated,)
-    queryset = Expense.objects.all()
-    serializer_class = ExpenseSerializer
-
+class ExpenseDetailView(generics.RetrieveUpdateDestroyAPIView, BaseExpenseView):
     def perform_update(self, serializer):
         instance = self.get_object()
         old_expense_info = model_to_dict(instance)
@@ -216,12 +219,14 @@ class DebtView(generics.ListAPIView):
     serializer_class = DebtSerializer
 
     def get_queryset(self):
-        group_id = self.request.query_params.get("group_id")
-        if group_id:
-            group = get_object_or_404(Group, pk=group_id)
-            return Debt.objects.filter(group=group)
+        query1 = Debt.objects.filter(group__users=self.request.user)
+        group_id = self.request.query_params.get("group_id", None)
 
-        return Debt.objects.all()
+        if group_id is not None:
+            query2 = query1.filter(group__id=group_id)
+            return query2
+
+        return query1
 
 
 ################################################################################
@@ -230,16 +235,17 @@ class DebtView(generics.ListAPIView):
 
 class BalanceView(generics.ListAPIView):
     permission_classes = (IsAuthenticated,)
-    queryset = Balance.objects.all()
     serializer_class = BalanceSerializer
 
     def get_queryset(self):
-        group_id = self.request.query_params.get("group_id")
-        if group_id:
-            group = get_object_or_404(Group, pk=group_id)
-            return Balance.objects.filter(group=group)
+        query1 = Balance.objects.filter(group__users=self.request.user)
+        group_id = self.request.query_params.get("group_id", None)
 
-        return Balance.objects.all()
+        if group_id is not None:
+            query2 = query1.filter(group__id=group_id)
+            return query2
+
+        return query1
 
 
 ################################################################################
