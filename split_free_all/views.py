@@ -266,3 +266,16 @@ class LogoutView(APIView):
 
     def get(self, request):
         return Response({"refresh_token": ""})
+
+
+################################################################################
+# Delete User
+
+
+class DeleteUserView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        user = request.user
+        user.delete()
+        return Response(status=status.HTTP_200_OK)
