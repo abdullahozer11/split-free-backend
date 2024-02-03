@@ -73,7 +73,6 @@ class UserDetail(generics.RetrieveUpdateDestroyAPIView):
 
 class MemberList(generics.ListCreateAPIView):
     permission_classes = (IsAuthenticated,)
-    queryset = Member.objects.all()
     serializer_class = MemberSerializer
 
     def get_queryset(self):
