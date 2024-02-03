@@ -15,6 +15,23 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ["email", "password"]
 
+    def validate(self, data):
+        if "password" not in data:
+            raise serializers.ValidationError({"password": "This field is required."})
+        if "email" not in data:
+            raise serializers.ValidationError({"email": "This field is required."})
+        if User.objects.filter(email=data["email"]).exists():
+            raise serializers.ValidationError(
+                {"email": "A user with that email already exists."}
+            )
+        if len(data["password"]) < 8:
+            raise serializers.ValidationError(
+                {
+                    "password": "This password is too short. It must contain at least 8 characters."
+                }
+            )
+        return data
+
     def create(self, validated_data):
         user = User(email=validated_data["email"])
         user.set_password(validated_data["password"])
