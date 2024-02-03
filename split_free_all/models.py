@@ -61,7 +61,7 @@ class Group(models.Model):
     title = models.CharField(max_length=255, default=None)
     description = models.TextField(null=True, blank=True)
     creator = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
-    users = models.ManyToManyField(User, related_name="expense_groups")
+    users = models.ManyToManyField(User, null=True, related_name="expense_groups")
 
     def __str__(self):
         return f'Group("{self.title}")'
