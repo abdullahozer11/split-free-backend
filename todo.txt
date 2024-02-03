@@ -1,2 +1,0 @@
-T0do 1
-Each expense creation or update adds new debt objects it should delete the old ones.
