@@ -3,7 +3,8 @@
 from django.forms.models import model_to_dict
 from django.shortcuts import get_object_or_404
 from rest_framework import generics, status
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import permission_classes
+from rest_framework.permissions import BasePermission, IsAuthenticated
 from rest_framework.renderers import TemplateHTMLRenderer
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -27,9 +28,25 @@ from split_free_all.signals import (
 )
 
 ################################################################################
+# CustomPermission
+
+
+class CustomPermission(BasePermission):
+    def has_permission(self, request, view):
+        # Allow GET request without authentication
+        if request.method == "POST":
+            return True
+        # Require authentication for other methods
+        return (
+            request.user and request.user.is_authenticated and request.user.is_superuser
+        )
+
+
+################################################################################
 # User
 
 
+@permission_classes([CustomPermission])
 class UserView(generics.ListCreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
