@@ -96,8 +96,10 @@ class MemberDetail(generics.RetrieveUpdateDestroyAPIView):
 
 class GroupList(generics.ListCreateAPIView):
     permission_classes = (IsAuthenticated,)
-    queryset = Group.objects.all()
     serializer_class = GroupSerializer
+
+    def get_queryset(self):
+        return Group.objects.filter(users=self.request.user)
 
     def perform_create(self, serializer):
         serializer.save()
