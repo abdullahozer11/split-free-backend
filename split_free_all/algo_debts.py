@@ -138,6 +138,9 @@ def calculate_new_debts(group):
             # debts out of this selection
             debts.extend(get_debts_from(selection=selection))
 
+    # Let's remove the old debts from the database
+    Debt.objects.filter(group=group).delete()
+
     # Save the debts in database
     for debt in debts:
         debt.save()
