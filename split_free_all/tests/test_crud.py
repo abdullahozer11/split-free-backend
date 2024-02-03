@@ -192,6 +192,41 @@ class GroupCRUDTests(BaseAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(Group.objects.count(), 0)
 
+    def test_no_access_to_other_users_groups(self):
+        ### Setup
+        other_user = User.objects.create(
+            email="otheruser@hotmail.com", password="otherpassword"
+        )
+        other_group = Group.objects.create(
+            title="Other Group",
+            description="Group for testing",
+        )
+        other_group.users.add(other_user)
+        response = self.client.get(
+            f"/api/groups/{other_group.id}/",
+            format="json",
+            headers=self.get_auth_headers(),
+        )
+
+        ### Checks
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+        response = self.client.put(
+            f"/api/groups/{other_group.id}/",
+            {"title": "New Title", "description": "New Description"},
+            content_type="application/json",
+            format="json",
+            headers=self.get_auth_headers(),
+        )
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+        response = self.client.delete(
+            f"/api/groups/{other_group.id}/",
+            format="json",
+            headers=self.get_auth_headers(),
+        )
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
 
 class ExpenseCRUDTests(BaseAPITestCase):
     def setUp(self):
