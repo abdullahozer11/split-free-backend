@@ -33,6 +33,18 @@ class GroupSerializer(serializers.ModelSerializer):
         model = Group
         fields = "__all__"
 
+    def create(self, validated_data):
+        user = self.context["request"].user
+
+        group = Group(
+            title=validated_data["title"],
+            description=validated_data["description"],
+            creator=user,
+        )
+        group.save()
+        group.users.add(user)
+        return group
+
 
 class ExpenseSerializer(serializers.ModelSerializer):
     class Meta:
