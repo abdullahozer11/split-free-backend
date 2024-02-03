@@ -291,6 +291,32 @@ class ExpenseSignalTests(BaseAPITestCase):
         # Check that 2 debts are created
         self.assertEqual(Debt.objects.filter(group=group).count(), 2)
 
+        # Repeat same expense to check that the debts are updated
+        self.client.post(
+            "/api/expenses/",
+            expense_data,
+            format="json",
+            headers=self.get_auth_headers(),
+        )
+
+        # Check the balance of each member
+
+        self.assertEqual(
+            Balance.objects.get(group=group, owner=members[0]).amount,
+            40.00,
+        )
+        self.assertEqual(
+            Balance.objects.get(group=group, owner=members[1]).amount,
+            -80.00,
+        )
+        self.assertEqual(
+            Balance.objects.get(group=group, owner=members[2]).amount,
+            40.00,
+        )
+
+        # Check that 2 debts are updated
+        self.assertEqual(Debt.objects.filter(group=group).count(), 2)
+
     def test_handle_expense_created_signal_payer_is_not_participant(self):
         ### Setup
         # Create a group
