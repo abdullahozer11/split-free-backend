@@ -30,7 +30,7 @@ from split_free_all.signals import (
 # User
 
 
-class UserList(generics.ListCreateAPIView):
+class UserView(generics.ListCreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
@@ -62,7 +62,7 @@ class UserList(generics.ListCreateAPIView):
         )
 
 
-class UserDetail(generics.RetrieveUpdateDestroyAPIView):
+class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
@@ -71,7 +71,7 @@ class UserDetail(generics.RetrieveUpdateDestroyAPIView):
 # Member
 
 
-class MemberList(generics.ListCreateAPIView):
+class MemberView(generics.ListCreateAPIView):
     permission_classes = (IsAuthenticated,)
     serializer_class = MemberSerializer
 
@@ -84,7 +84,7 @@ class MemberList(generics.ListCreateAPIView):
         return Member.objects.all()
 
 
-class MemberDetail(generics.RetrieveUpdateDestroyAPIView):
+class MemberDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = (IsAuthenticated,)
     queryset = Member.objects.all()
     serializer_class = MemberSerializer
@@ -94,7 +94,7 @@ class MemberDetail(generics.RetrieveUpdateDestroyAPIView):
 # Group
 
 
-class GroupList(generics.ListCreateAPIView):
+class GroupView(generics.ListCreateAPIView):
     permission_classes = (IsAuthenticated,)
     serializer_class = GroupSerializer
 
@@ -114,7 +114,7 @@ class GroupList(generics.ListCreateAPIView):
         )
 
 
-class GroupDetail(generics.RetrieveUpdateDestroyAPIView):
+class GroupDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = (IsAuthenticated,)
     queryset = Group.objects.all()
     serializer_class = GroupSerializer
@@ -138,7 +138,7 @@ class GroupDetail(generics.RetrieveUpdateDestroyAPIView):
 # Expense
 
 
-class ExpenseList(generics.ListCreateAPIView):
+class ExpenseView(generics.ListCreateAPIView):
     permission_classes = (IsAuthenticated,)
     queryset = Expense.objects.all()
     serializer_class = ExpenseSerializer
@@ -158,7 +158,7 @@ class ExpenseList(generics.ListCreateAPIView):
         return Expense.objects.all()
 
 
-class ExpenseDetail(generics.RetrieveUpdateDestroyAPIView):
+class ExpenseDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = (IsAuthenticated,)
     queryset = Expense.objects.all()
     serializer_class = ExpenseSerializer
@@ -194,7 +194,7 @@ class ExpenseDetail(generics.RetrieveUpdateDestroyAPIView):
 # Debt
 
 
-class DebtList(generics.ListAPIView):
+class DebtView(generics.ListAPIView):
     permission_classes = (IsAuthenticated,)
     serializer_class = DebtSerializer
 
@@ -211,7 +211,7 @@ class DebtList(generics.ListAPIView):
 # Balance
 
 
-class BalanceList(generics.ListAPIView):
+class BalanceView(generics.ListAPIView):
     permission_classes = (IsAuthenticated,)
     queryset = Balance.objects.all()
     serializer_class = BalanceSerializer
