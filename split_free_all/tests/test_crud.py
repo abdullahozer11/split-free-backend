@@ -39,6 +39,7 @@ class MemberCRUDTests(BaseAPITestCase):
             title="Test Group",
             description="Group for testing",
         )
+        self.group.users.add(self.user)
 
     def test_create_member(self):
         ### Set up
@@ -105,6 +106,7 @@ class GroupCRUDTests(BaseAPITestCase):
         self.group = Group.objects.create(
             title="Anniversary", description="Special day"
         )
+        self.group.users.add(self.user)
         # Create two members for this group
         self.members = [
             Member.objects.create(name="Member1", group=self.group),
@@ -199,6 +201,7 @@ class ExpenseCRUDTests(BaseAPITestCase):
             title="Test Group",
             description="Group for testing",
         )
+        self.group.users.add(self.user)
 
         # Create some members for testing
         self.member1 = Member.objects.create(name="Member1", group=self.group)
@@ -327,6 +330,9 @@ class DebtTests(BaseAPITestCase):
                 title="Normal group", description="This group is normal"
             ),
         ]
+
+        self.groups[0].users.add(self.user)
+        self.groups[1].users.add(self.user)
 
         self.members = [
             # Members of groups[0]

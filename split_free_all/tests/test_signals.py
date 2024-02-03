@@ -73,6 +73,7 @@ class GroupSignalTests(BaseAPITestCase):
             title="Day of eating",
             description="Breakfast, lunch and dinner",
         )
+        self.group.users.add(self.user)
         # Create members for this group
         self.members = [
             Member.objects.create(name="Apo", group=self.group),
@@ -349,6 +350,7 @@ class ExpenseSignalTests(BaseAPITestCase):
             title="Holidays",
             description="Great holidays",
         )
+        self.group.users.add(self.user)
         # Create members and add them to the group
         self.members = [
             Member.objects.create(name="Apo", group=self.group),
