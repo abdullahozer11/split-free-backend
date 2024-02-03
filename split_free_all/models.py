@@ -60,6 +60,8 @@ class Member(models.Model):
 class Group(models.Model):
     title = models.CharField(max_length=255, default=None)
     description = models.TextField(null=True, blank=True)
+    creator = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    users = models.ManyToManyField(User, related_name="expense_groups")
 
     def __str__(self):
         return f'Group("{self.title}")'
@@ -83,11 +85,15 @@ class Expense(models.Model):
     description = models.TextField()
     currency = models.CharField(max_length=4, choices=CURRENCY_CHOICES, default="EUR")
     payer = models.ForeignKey(
-        Member, on_delete=models.SET_NULL, null=True, blank=True, related_name="payer"
+        Member,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="payed_expenses",
     )
     group = models.ForeignKey(Group, on_delete=models.CASCADE, default=None)
     date = models.CharField(max_length=30, default="")
-    participants = models.ManyToManyField(Member, related_name="participants")
+    participants = models.ManyToManyField(Member, related_name="participated_expenses")
 
     def __str__(self):
         return f'Expense("{self.title}") - Amount: {self.amount}'
@@ -97,9 +103,11 @@ class Debt(models.Model):
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     currency = models.CharField(max_length=4, choices=CURRENCY_CHOICES, default="EUR")
     borrower = models.ForeignKey(
-        Member, on_delete=models.CASCADE, related_name="borrower"
+        Member, on_delete=models.CASCADE, related_name="debts_borrowed"
     )
-    lender = models.ForeignKey(Member, on_delete=models.CASCADE, related_name="lender")
+    lender = models.ForeignKey(
+        Member, on_delete=models.CASCADE, related_name="debts_lent"
+    )
     group = models.ForeignKey(Group, on_delete=models.CASCADE, default=None)
 
     def __str__(self):
