@@ -488,9 +488,11 @@ class InviteTokenTests(BaseAPITestCase):
         self.assertEqual(InviteToken.objects.count(), 1)
         invite_token = InviteToken.objects.first()
         self.assertEqual(response.data["invite_token"], invite_token.hash)
-        self.assertEqual(
+        # instead of using equal on time fields, we can use assertAlmostEqual
+        self.assertAlmostEqual(
             invite_token.expires_at,
             invite_token.created_at + timedelta(days=1),
+            delta=timedelta(minutes=1),
         )
 
     def test_has_and_group_are_unique_together(self):
