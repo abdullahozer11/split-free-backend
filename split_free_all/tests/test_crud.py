@@ -8,6 +8,7 @@ from django.utils import timezone
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from split_free_all.helpers import get_auth_headers
 from split_free_all.models import (
     Balance,
     Debt,
@@ -36,9 +37,6 @@ class BaseAPITestCase(TestCase):
         refresh = RefreshToken.for_user(self.user)
         self.access_token = str(refresh.access_token)
 
-    def get_auth_headers(self):
-        return {"Authorization": f"Bearer {self.access_token}"}
-
 
 class MemberCRUDTests(BaseAPITestCase):
     def setUp(self):
@@ -57,7 +55,10 @@ class MemberCRUDTests(BaseAPITestCase):
 
         ### Action
         response = self.client.post(
-            "/api/members/", data, format="json", headers=self.get_auth_headers()
+            "/api/members/",
+            data,
+            format="json",
+            headers=get_auth_headers(self.access_token),
         )
 
         ### Checks
@@ -71,7 +72,9 @@ class MemberCRUDTests(BaseAPITestCase):
 
         ### Action
         response = self.client.get(
-            f"/api/members/{member.id}/", format="json", headers=self.get_auth_headers()
+            f"/api/members/{member.id}/",
+            format="json",
+            headers=get_auth_headers(self.access_token),
         )
 
         ### Checks
@@ -91,7 +94,7 @@ class MemberCRUDTests(BaseAPITestCase):
             data,
             content_type="application/json",
             format="json",
-            headers=self.get_auth_headers(),
+            headers=get_auth_headers(self.access_token),
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         member.refresh_from_db()
@@ -103,7 +106,9 @@ class MemberCRUDTests(BaseAPITestCase):
 
         ### Action
         response = self.client.delete(
-            f"/api/members/{member.id}/", format="json", headers=self.get_auth_headers()
+            f"/api/members/{member.id}/",
+            format="json",
+            headers=get_auth_headers(self.access_token),
         )
 
         ### Checks
@@ -137,7 +142,7 @@ class GroupCRUDTests(BaseAPITestCase):
             data,
             content_type="application/json",
             format="json",
-            headers=self.get_auth_headers(),
+            headers=get_auth_headers(self.access_token),
         )
 
         ### Checks
@@ -155,7 +160,7 @@ class GroupCRUDTests(BaseAPITestCase):
         response = self.client.get(
             f"/api/groups/{self.group.id}/",
             format="json",
-            headers=self.get_auth_headers(),
+            headers=get_auth_headers(self.access_token),
         )
 
         ## Checks
@@ -177,7 +182,7 @@ class GroupCRUDTests(BaseAPITestCase):
             data,
             content_type="application/json",
             format="json",
-            headers=self.get_auth_headers(),
+            headers=get_auth_headers(self.access_token),
         )
 
         ### Checks
@@ -195,7 +200,7 @@ class GroupCRUDTests(BaseAPITestCase):
         response = self.client.delete(
             f"/api/groups/{self.group.id}/",
             format="json",
-            headers=self.get_auth_headers(),
+            headers=get_auth_headers(self.access_token),
         )
 
         ### Checks
@@ -215,7 +220,7 @@ class GroupCRUDTests(BaseAPITestCase):
         response = self.client.get(
             f"/api/groups/{other_group.id}/",
             format="json",
-            headers=self.get_auth_headers(),
+            headers=get_auth_headers(self.access_token),
         )
 
         ### Checks
@@ -226,14 +231,14 @@ class GroupCRUDTests(BaseAPITestCase):
             {"title": "New Title", "description": "New Description"},
             content_type="application/json",
             format="json",
-            headers=self.get_auth_headers(),
+            headers=get_auth_headers(self.access_token),
         )
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
         response = self.client.delete(
             f"/api/groups/{other_group.id}/",
             format="json",
-            headers=self.get_auth_headers(),
+            headers=get_auth_headers(self.access_token),
         )
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
@@ -269,7 +274,10 @@ class ExpenseCRUDTests(BaseAPITestCase):
             "participants": [self.member1.id, self.member2.id],
         }
         response = self.client.post(
-            "/api/expenses/", data, format="json", headers=self.get_auth_headers()
+            "/api/expenses/",
+            data,
+            format="json",
+            headers=get_auth_headers(self.access_token),
         )
 
         ### Checks
@@ -296,7 +304,7 @@ class ExpenseCRUDTests(BaseAPITestCase):
         response = self.client.get(
             f"/api/expenses/{expense.id}/",
             format="json",
-            headers=self.get_auth_headers(),
+            headers=get_auth_headers(self.access_token),
         )
 
         ### Checks
@@ -329,7 +337,7 @@ class ExpenseCRUDTests(BaseAPITestCase):
             data,
             content_type="application/json",
             format="json",
-            headers=self.get_auth_headers(),
+            headers=get_auth_headers(self.access_token),
         )
 
         ### Checks
@@ -355,7 +363,7 @@ class ExpenseCRUDTests(BaseAPITestCase):
         response = self.client.delete(
             f"/api/expenses/{expense.id}/",
             format="json",
-            headers=self.get_auth_headers(),
+            headers=get_auth_headers(self.access_token),
         )
 
         ### Checks
@@ -414,7 +422,7 @@ class DebtTests(BaseAPITestCase):
 
         ### Action
         response = self.client.get(
-            f"/api/debts/", format="json", headers=self.get_auth_headers()
+            f"/api/debts/", format="json", headers=get_auth_headers(self.access_token)
         )
 
         ### Checks
@@ -448,7 +456,7 @@ class DebtTests(BaseAPITestCase):
             f"/api/debts/",
             {"group_id": self.groups[0].id},
             format="json",
-            headers=self.get_auth_headers(),
+            headers=get_auth_headers(self.access_token),
         )
 
         ### Checks
@@ -480,7 +488,7 @@ class InviteTokenTests(BaseAPITestCase):
                 "group_id": self.group.id,
             },
             format="json",
-            headers=self.get_auth_headers(),
+            headers=get_auth_headers(self.access_token),
         )
 
         ### Checks
@@ -527,7 +535,7 @@ class InviteTokenTests(BaseAPITestCase):
                 "invite_token": invite_token.hash,
             },
             format="json",
-            headers=self.get_auth_headers(),
+            headers=get_auth_headers(self.access_token),
         )
 
         ### Checks
@@ -559,7 +567,7 @@ class InviteTokenTests(BaseAPITestCase):
                 "invite_token": invite_token.hash,
             },
             format="json",
-            headers=self.get_auth_headers(),
+            headers=get_auth_headers(self.access_token),
         )
 
         ### Checks
@@ -574,7 +582,7 @@ class InviteTokenTests(BaseAPITestCase):
                 "invite_token": "123",
             },
             format="json",
-            headers=self.get_auth_headers(),
+            headers=get_auth_headers(self.access_token),
         )
 
         ### Checks

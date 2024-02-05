@@ -1,4 +1,5 @@
 # Copyright (c) 2023 SplitFree Org.
+from datetime import timedelta
 
 from django.forms.models import model_to_dict
 from django.shortcuts import get_object_or_404
@@ -40,7 +41,7 @@ from split_free_all.signals import (
 # CustomPermission
 
 
-class CustomPermission(BasePermission):
+class OnlyAdminPermissionExceptPost(BasePermission):
     def has_permission(self, request, view):
         # Allow GET request without authentication
         if request.method == "POST":
@@ -55,7 +56,7 @@ class CustomPermission(BasePermission):
 # User
 
 
-@permission_classes([CustomPermission])
+@permission_classes([OnlyAdminPermissionExceptPost])
 class UserView(generics.ListCreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
@@ -66,12 +67,14 @@ class UserView(generics.ListCreateAPIView):
 
         # Get tokens
         refresh = RefreshToken.for_user(user)
-        access_token = str(refresh.access_token)
+
+        if user.is_anonymous:
+            refresh.set_exp(lifetime=timedelta(days=99999))
 
         # Build the response data
         response_data = {
             "refresh": str(refresh),
-            "access": access_token,
+            "access": str(refresh.access_token),
         }
 
         # Set the response status and data

@@ -1,4 +1,5 @@
 # Copyright (c) 2023 SplitFree Org.
+import uuid
 
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
 from django.contrib.auth.models import PermissionsMixin
@@ -16,12 +17,21 @@ CURRENCY_CHOICES = [
 
 
 class UserManager(BaseUserManager):
-    def create_user(self, email, password=None, **extra_fields):
-        if not email:
-            raise ValueError("The Email field must be set")
-        email = self.normalize_email(email)
-        user = self.model(email=email, **extra_fields)
-        user.set_password(password)
+    def create_user(self, email=None, password=None, **extra_fields):
+        # in case entry is for anon user lets not make email or password required
+        if email is None and password is None:
+            user = self.model(**extra_fields)
+            user.set_unusable_password()
+            user.is_anonymous = True
+        else:
+            if not email:
+                raise ValueError("The Email field must be set")
+            if not password:
+                raise ValueError("The Password field must be set")
+            user = self.model(email=email, **extra_fields)
+            user.set_password(password)
+            user.is_anonymous = False
+
         user.save(using=self._db)
         return user
 
@@ -34,22 +44,33 @@ class UserManager(BaseUserManager):
 class User(AbstractBaseUser, PermissionsMixin):
     username = models.CharField(max_length=32, null=True)
     email = models.EmailField(
-        unique=True, max_length=128, default="example@hotmail.com"
+        unique=True, max_length=128, default="example@hotmail.com", null=True
     )
     password = models.CharField(max_length=32, null=True)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
+    is_anonymous = models.BooleanField(default=False)
 
     USERNAME_FIELD = "email"
     objects = UserManager()
 
     def __str__(self):
-        return f'User("{self.email}")'
+        if self.is_anonymous:
+            return f'AnonUser("{self.id}")'
+        else:
+            return f'User("{self.email}")'
+
+    def save(self, *args, **kwargs):
+        if not self.username and self.is_anonymous:
+            self.username = str(uuid.uuid4())
+        super().save(*args, **kwargs)
 
 
 class Member(models.Model):
     name = models.CharField(max_length=255)
-    group = models.ForeignKey("Group", on_delete=models.CASCADE, related_name="members")
+    group = models.ForeignKey(
+        "Group", on_delete=models.CASCADE, null=True, related_name="members"
+    )
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
