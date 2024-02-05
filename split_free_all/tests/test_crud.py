@@ -1,12 +1,22 @@
 # Copyright (c) 2023 SplitFree Org.
-
+from datetime import timedelta
 from unittest.mock import patch
 
+from django.db import IntegrityError
 from django.test import TestCase
+from django.utils import timezone
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from split_free_all.models import Balance, Debt, Expense, Group, Member, User
+from split_free_all.models import (
+    Balance,
+    Debt,
+    Expense,
+    Group,
+    InviteToken,
+    Member,
+    User,
+)
 from split_free_all.serializers import (
     ExpenseSerializer,
     GroupSerializer,
@@ -447,3 +457,123 @@ class DebtTests(BaseAPITestCase):
         # Ensure that all debts in the response belong to groups[0]
         for debt in response.data:
             self.assertEqual(debt["group"], self.groups[0].id)
+
+
+#########################################################################
+# Tests for invite token
+
+
+class InviteTokenTests(BaseAPITestCase):
+    def setUp(self):
+        super().setUp()
+
+        self.group = Group.objects.create(
+            title="Friend group", description="This group is friendly"
+        )
+        self.group.users.add(self.user)
+
+    def test_create_invite_token(self):
+        ### Action
+        response = self.client.post(
+            f"/api/invite/generate/",
+            {
+                "group_id": self.group.id,
+            },
+            format="json",
+            headers=self.get_auth_headers(),
+        )
+
+        ### Checks
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(InviteToken.objects.count(), 1)
+        invite_token = InviteToken.objects.first()
+        self.assertEqual(response.data["invite_token"], invite_token.hash)
+        self.assertEqual(
+            invite_token.expires_at,
+            invite_token.created_at + timedelta(days=1),
+        )
+
+    def test_has_and_group_are_unique_together(self):
+        # Create an invite token
+        InviteToken.objects.create(
+            group=self.group,
+            hash="123456",
+        )
+
+        # Try to create another invite token for the same group
+        with self.assertRaises(IntegrityError):
+            InviteToken.objects.create(
+                group=self.group,
+                hash="123456",
+            )
+
+    def test_use_invite_token(self):
+        ### Setup
+        # create another group
+        another_group = Group.objects.create(
+            title="Another group", description="This group is another"
+        )
+
+        invite_token = InviteToken.objects.create(
+            group=another_group,
+        )
+
+        ### Action
+        response = self.client.post(
+            f"/api/invite/accept/",
+            {
+                "invite_token": invite_token.hash,
+            },
+            format="json",
+            headers=self.get_auth_headers(),
+        )
+
+        ### Checks
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(self.user.expense_groups.count(), 2)
+        self.assertEqual(self.user.expense_groups.first(), self.group)
+        self.assertEqual(self.user.expense_groups.last(), another_group)
+
+        # Ensure that the invite token is deleted
+        self.assertEqual(InviteToken.objects.count(), 0)
+
+    def test_use_expired_invite_token(self):
+        ### Setup
+        # create another group
+        another_group = Group.objects.create(
+            title="Another group", description="This group is another"
+        )
+
+        invite_token = InviteToken.objects.create(
+            group=another_group,
+            hash="123456",
+            expires_at=timezone.now() - timedelta(days=1),
+        )
+
+        ### Action
+        response = self.client.post(
+            f"/api/invite/accept/",
+            {
+                "invite_token": invite_token.hash,
+            },
+            format="json",
+            headers=self.get_auth_headers(),
+        )
+
+        ### Checks
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data["detail"], "Invite token is expired")
+
+    def test_use_invalid_invite_token(self):
+        ### Action
+        response = self.client.post(
+            f"/api/invite/accept/",
+            {
+                "invite_token": "123",
+            },
+            format="json",
+            headers=self.get_auth_headers(),
+        )
+
+        ### Checks
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)

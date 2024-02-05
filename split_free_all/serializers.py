@@ -3,7 +3,15 @@
 
 from rest_framework import serializers
 
-from split_free_all.models import Balance, Debt, Expense, Group, Member, User
+from split_free_all.models import (
+    Balance,
+    Debt,
+    Expense,
+    Group,
+    InviteToken,
+    Member,
+    User,
+)
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -79,3 +87,11 @@ class BalanceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Balance
         fields = "__all__"
+
+
+class InviteTokenSerializer(serializers.Serializer):
+    group = serializers.CharField()
+
+    class Meta:
+        model = InviteToken
+        fields = ["group"]

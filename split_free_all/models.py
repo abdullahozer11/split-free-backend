@@ -3,6 +3,9 @@
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
 from django.contrib.auth.models import PermissionsMixin
 from django.db import models
+from django.utils import timezone
+
+from split_free_all.helpers import generate_hash
 
 CURRENCY_CHOICES = [
     ("EUR", "Euro"),
@@ -112,3 +115,26 @@ class Debt(models.Model):
 
     def __str__(self):
         return f"Debt({self.borrower.name} to {self.lender.name}): {self.amount}"
+
+
+class InviteToken(models.Model):
+    hash = models.CharField(max_length=64)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField(null=True, blank=True)
+    group = models.ForeignKey(Group, on_delete=models.CASCADE, default=None)
+
+    def __str__(self):
+        return f"Token for {self.group.title}"
+
+    class Meta:
+        unique_together = ["hash", "group"]
+
+    def save(self, *args, **kwargs):
+        if not self.hash:
+            self.hash = generate_hash()
+        if not self.expires_at:
+            self.expires_at = timezone.now() + timezone.timedelta(days=1)
+        return super().save(*args, **kwargs)
+
+    def is_expired(self):
+        return self.expires_at is not None and self.expires_at < timezone.now()

@@ -1,6 +1,7 @@
 # Copyright (c) 2023 SplitFree Org.
 
 from django.forms.models import model_to_dict
+from django.shortcuts import get_object_or_404
 from rest_framework import generics, status
 from rest_framework.decorators import permission_classes
 from rest_framework.permissions import BasePermission, IsAuthenticated
@@ -9,12 +10,21 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from split_free_all.models import Balance, Debt, Expense, Group, Member, User
+from split_free_all.models import (
+    Balance,
+    Debt,
+    Expense,
+    Group,
+    InviteToken,
+    Member,
+    User,
+)
 from split_free_all.serializers import (
     BalanceSerializer,
     DebtSerializer,
     ExpenseSerializer,
     GroupSerializer,
+    InviteTokenSerializer,
     MemberSerializer,
     UserSerializer,
 )
@@ -285,3 +295,51 @@ class DeleteUserView(APIView):
         user = request.user
         user.delete()
         return Response(status=status.HTTP_200_OK)
+
+
+################################################################################
+# Invite User to Group
+
+
+class AcceptInviteView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        hash = request.data.get("invite_token")
+        token = get_object_or_404(InviteToken, hash=hash)
+        if token.is_expired():
+            return Response(
+                {"detail": "Invite token is expired"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        group = token.group
+        group.users.add(request.user)
+        token.delete()
+        return Response(status=status.HTTP_200_OK)
+
+
+class InviteGenerateView(APIView):
+    permission_classes = (IsAuthenticated,)
+    serializer_class = InviteTokenSerializer
+
+    def post(self, request):
+        group_id = request.data.get("group_id")
+        if not group_id:
+            return Response(
+                {"detail": "Group id is required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        group = Group.objects.get(id=group_id)
+        if not group:
+            return Response(
+                {"detail": "Group not found"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        token = InviteToken.objects.create(group=group)
+        if not token:
+            return Response(
+                {"detail": "Error with token creation"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        token.save()
+        return Response({"invite_token": token.hash}, status=status.HTTP_201_CREATED)

@@ -5,6 +5,7 @@ from django.urls import path
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from split_free_all.views import (
+    AcceptInviteView,
     BalanceView,
     DebtView,
     DeleteUserView,
@@ -12,6 +13,7 @@ from split_free_all.views import (
     ExpenseView,
     GroupDetailView,
     GroupView,
+    InviteGenerateView,
     LogoutView,
     MemberDetailView,
     MemberView,
@@ -35,4 +37,7 @@ urlpatterns = [
     path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("logout/", LogoutView.as_view(), name="logout"),
     path("delete/", DeleteUserView.as_view(), name="delete-user"),
+    # Invite link
+    path("invite/accept/", AcceptInviteView.as_view(), name="invite-accept"),
+    path("invite/generate/", InviteGenerateView.as_view(), name="invite-generate"),
 ]
