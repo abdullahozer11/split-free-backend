@@ -39,27 +39,34 @@ pre-commit install
 
 1. **Build the Docker image:**
 
-    ```bash
-    docker build -f Dockerfile.prod -t split-free-backend-prod .
-    ```
+    1. Rename *.env.prod-sample* to *.env.prod* and edit that file
 
-    OR
+    1. Rename *.env.prod.db-sample* to *.env.prod.db* and edit that file
 
-    ```bash
-    docker build -f Dockerfile.staging -t split-free-backend-staging .
-    ```
+    1. Build the images and run the containers:
 
-2. **Run the Docker container:**
+        ```bash
+        docker-compose -f docker-compose.prod.yaml up -d --build
+        ```
 
-    ```bash
-    docker run -p 8000:8000 split-free-backend-prod
-    ```
+    1. Make migrations:
 
-    OR
+        ```bash
+        docker-compose -f docker-compose.prod.yaml exec web python manage.py
+        migrate --noinput
+        ```
 
-    ```bash
-    docker run -p 8000:8000 split-free-backend-staging
-    ```
+    1. See logs:
+
+        ```bash
+        docker-compose -f docker-compose.prod.yaml logs -f
+        ```
+
+    1. Shut the container down:
+
+        ```bash
+        docker-compose -f docker-compose.prod.yaml down -v
+        ```
 
 ### For development
 

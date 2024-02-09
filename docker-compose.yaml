@@ -2,7 +2,6 @@ version: '3.8'
 
 services:
   web:
-    image: split-free-backend-dev
     build:
         context: .
         dockerfile: Dockerfile.dev
