@@ -116,6 +116,13 @@ class MemberView(generics.ListCreateAPIView):
 
         return query1
 
+    def perform_create(self, serializer):
+        serializer.save()
+
+        Balance.objects.create(
+            owner=serializer.instance, group=serializer.instance.group, amount=0.00
+        )
+
 
 class MemberDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = (IsAuthenticated,)
