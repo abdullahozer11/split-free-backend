@@ -6,6 +6,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from split_free_all.views import (
     AcceptInviteView,
+    ActivityView,
     BalanceView,
     DebtView,
     DeleteUserView,
@@ -22,6 +23,7 @@ from split_free_all.views import (
 )
 
 urlpatterns = [
+    path("activities/", ActivityView.as_view(), name="activity-list"),
     path("balances/", BalanceView.as_view(), name="balance-list"),
     path("debts/", DebtView.as_view(), name="debt-list"),
     path("members/", MemberView.as_view(), name="member-list"),

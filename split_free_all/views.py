@@ -12,6 +12,7 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from split_free_all.models import (
+    Activity,
     Balance,
     Debt,
     Expense,
@@ -21,6 +22,7 @@ from split_free_all.models import (
     User,
 )
 from split_free_all.serializers import (
+    ActivitySerializer,
     BalanceSerializer,
     DebtSerializer,
     ExpenseSerializer,
@@ -123,6 +125,11 @@ class MemberView(generics.ListCreateAPIView):
             owner=serializer.instance, group=serializer.instance.group, amount=0.00
         )
 
+        Activity.objects.create(
+            text=f"{serializer.instance.name} is added to {serializer.instance.group.title}.",
+            group=serializer.instance.group,
+        )
+
 
 class MemberDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = (IsAuthenticated,)
@@ -130,6 +137,14 @@ class MemberDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     def get_queryset(self):
         return Member.objects.filter(group__users=self.request.user)
+
+    def perform_destroy(self, instance):
+        super().perform_destroy(instance)
+
+        Activity.objects.create(
+            text=f"{instance.name} is removed from {instance.group.title}.",
+            group=instance.group,
+        )
 
 
 ################################################################################
@@ -154,6 +169,17 @@ class GroupView(generics.ListCreateAPIView):
             instance=serializer.instance,
             member_names=member_names,
         )
+
+        Activity.objects.create(
+            text=f"{serializer.instance.title} is created.",
+            group=serializer.instance,
+        )
+
+        for member_name in member_names:
+            Activity.objects.create(
+                text=f"{member_name} is added to {serializer.instance.title}.",
+                group=serializer.instance,
+            )
 
 
 class GroupDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -204,6 +230,12 @@ class ExpenseView(generics.ListCreateAPIView, BaseExpenseView):
         # Trigger the custom signal
         expense_created.send(sender=self.__class__, instance=serializer.instance)
 
+        Activity.objects.create(
+            text=f"Expense {serializer.instance.title} of amount {serializer.instance.amount}"
+            f" {serializer.instance.currency} is added to {serializer.instance.group.title}.",
+            group=serializer.instance.group,
+        )
+
 
 class ExpenseDetailView(generics.RetrieveUpdateDestroyAPIView, BaseExpenseView):
     def perform_update(self, serializer):
@@ -229,6 +261,11 @@ class ExpenseDetailView(generics.RetrieveUpdateDestroyAPIView, BaseExpenseView):
         instance = self.get_object()
         # Trigger the custom signal
         expense_destroyed.send(sender=self.__class__, instance=instance)
+
+        Activity.objects.create(
+            text=f"Expense {instance.title} is deleted.",
+            group=instance.group,
+        )
 
         instance.delete()
 
@@ -327,6 +364,10 @@ class AcceptInviteView(APIView):
             )
         group = token.group
         group.users.add(request.user)
+        Activity.objects.create(
+            text=f"New user has joined {group.title}.",
+            group=group,
+        )
         token.delete()
         return Response(status=status.HTTP_200_OK)
 
@@ -356,3 +397,13 @@ class InviteGenerateView(APIView):
             )
         token.save()
         return Response({"invite_token": token.hash}, status=status.HTTP_201_CREATED)
+
+
+################################################################################
+# Invite User to Group
+
+
+class ActivityView(generics.ListAPIView):
+    permission_classes = (IsAuthenticated,)
+    queryset = Activity.objects.all()
+    serializer_class = ActivitySerializer

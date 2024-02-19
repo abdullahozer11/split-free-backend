@@ -159,3 +159,12 @@ class InviteToken(models.Model):
 
     def is_expired(self):
         return self.expires_at is not None and self.expires_at < timezone.now()
+
+
+class Activity(models.Model):
+    text = models.CharField(max_length=256)
+    date = models.DateTimeField(auto_now_add=True)
+    group = models.ForeignKey(Group, on_delete=models.CASCADE, default=None)
+
+    def __str__(self):
+        return f"Activity: {self.text}"

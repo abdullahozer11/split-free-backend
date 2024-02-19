@@ -10,6 +10,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from split_free_all.helpers import get_auth_headers
 from split_free_all.models import (
+    Activity,
     Balance,
     Debt,
     Expense,
@@ -66,6 +67,12 @@ class MemberCRUDTests(BaseAPITestCase):
         self.assertEqual(Member.objects.count(), 1)
         self.assertEqual(Member.objects.get().name, "Apo")
 
+        self.assertEqual(Activity.objects.count(), 1)
+        self.assertEqual(
+            Activity.objects.get().text, f"Apo is added to {self.group.title}."
+        )
+        self.assertEqual(Activity.objects.get().group, self.group)
+
     def test_read_member(self):
         ### Setup
         member = Member.objects.create(name="Michael", group=self.group)
@@ -115,6 +122,13 @@ class MemberCRUDTests(BaseAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(Member.objects.count(), 0)
 
+        self.assertEqual(Activity.objects.count(), 1)
+        self.assertEqual(
+            Activity.objects.get().text,
+            f"{member.name} is removed from {member.group.title}.",
+        )
+        self.assertEqual(Activity.objects.get().group, self.group)
+
 
 class GroupCRUDTests(BaseAPITestCase):
     def create_group_with_orm(self):
@@ -151,6 +165,20 @@ class GroupCRUDTests(BaseAPITestCase):
         created_group = Group.objects.get()
         self.assertEqual(created_group.title, "Birthday Party")
         self.assertEqual(created_group.members.count(), 2)
+
+        self.assertEqual(Activity.objects.count(), 3)
+        self.assertEqual(Activity.objects.first().text, f"Birthday Party is created.")
+        self.assertEqual(Activity.objects.first().group, created_group)
+
+        self.assertEqual(
+            Activity.objects.get(pk=2).text, f"Michael is added to Birthday Party."
+        )
+        self.assertEqual(Activity.objects.get(pk=2).group, created_group)
+
+        self.assertEqual(
+            Activity.objects.get(pk=3).text, f"Apollon is added to Birthday Party."
+        )
+        self.assertEqual(Activity.objects.get(pk=3).group, created_group)
 
     def test_read_group(self):
         ### Setup
@@ -289,6 +317,14 @@ class ExpenseCRUDTests(BaseAPITestCase):
         self.assertEqual(expense.currency, "EUR")
         self.assertEqual(list(expense.participants.all()), [self.member1, self.member2])
 
+        self.assertEqual(Activity.objects.count(), 1)
+        self.assertEqual(
+            Activity.objects.get().text,
+            f"Expense {expense.title} of amount {expense.amount} {expense.currency} "
+            f"is added to {self.group.title}.",
+        )
+        self.assertEqual(Activity.objects.get().group, self.group)
+
     def test_read_expense(self):
         ### Setup
         expense = Expense.objects.create(
@@ -369,6 +405,12 @@ class ExpenseCRUDTests(BaseAPITestCase):
         ### Checks
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(Expense.objects.count(), 0)
+
+        self.assertEqual(Activity.objects.count(), 1)
+        self.assertEqual(
+            Activity.objects.get().text, f"Expense {expense.title} is deleted."
+        )
+        self.assertEqual(Activity.objects.get().group, self.group)
 
 
 class DebtTests(BaseAPITestCase):
@@ -543,6 +585,12 @@ class InviteTokenTests(BaseAPITestCase):
         self.assertEqual(self.user.expense_groups.count(), 2)
         self.assertEqual(self.user.expense_groups.first(), self.group)
         self.assertEqual(self.user.expense_groups.last(), another_group)
+
+        self.assertEqual(Activity.objects.count(), 1)
+        self.assertEqual(
+            Activity.objects.get().text, f"New user has joined {another_group.title}."
+        )
+        self.assertEqual(Activity.objects.get().group, another_group)
 
         # Ensure that the invite token is deleted
         self.assertEqual(InviteToken.objects.count(), 0)
