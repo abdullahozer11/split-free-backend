@@ -1,4 +1,5 @@
 # Copyright (c) 2023 SplitFree Org.
+from copy import copy
 from datetime import timedelta
 from unittest.mock import patch
 
@@ -215,10 +216,23 @@ class GroupCRUDTests(BaseAPITestCase):
 
         ### Checks
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        group_copy = copy(self.group)
         self.group.refresh_from_db()
         self.assertEqual(self.group.title, "Workshop")
         self.assertEqual(self.group.members.count(), 1)
         self.assertEqual(self.group.members.first().name, "Member2")
+
+        self.assertEqual(Activity.objects.count(), 2)
+        self.assertEqual(
+            Activity.objects.get(pk=1).text,
+            f"Group title is updated from {group_copy.title} to {data['title']}",
+        )
+        self.assertEqual(Activity.objects.get(pk=1).group, self.group)
+        self.assertEqual(
+            Activity.objects.get(pk=2).text,
+            f"Group description is updated from {group_copy.description} to {data['description']}",
+        )
+        self.assertEqual(Activity.objects.get(pk=2).group, self.group)
 
     def test_delete_group(self):
         ### Setup

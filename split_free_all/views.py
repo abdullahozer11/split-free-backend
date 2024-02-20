@@ -190,7 +190,25 @@ class GroupDetailView(generics.RetrieveUpdateDestroyAPIView):
         return Group.objects.filter(users=self.request.user)
 
     def perform_update(self, serializer):
+        # Get the current instance before the update
+        old_instance = Group.objects.get(pk=serializer.instance.pk)
+
+        # Perform the update
         serializer.save()
+
+        # Compare the old and new titles
+        if old_instance.title != serializer.instance.title:
+            Activity.objects.create(
+                text=f"Group title is updated from {old_instance.title} to {serializer.instance.title}",
+                group=serializer.instance,
+            )
+
+        # Compare the old and new descriptions
+        if old_instance.description != serializer.instance.description:
+            Activity.objects.create(
+                text=f"Group description is updated from {old_instance.description} to {serializer.instance.description}",
+                group=serializer.instance,
+            )
 
         old_member_names = [member.name for member in serializer.instance.members.all()]
         new_member_names = self.request.data.get("member_names", [])
