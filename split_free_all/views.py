@@ -258,9 +258,35 @@ class ExpenseView(generics.ListCreateAPIView, BaseExpenseView):
 class ExpenseDetailView(generics.RetrieveUpdateDestroyAPIView, BaseExpenseView):
     def perform_update(self, serializer):
         instance = self.get_object()
+        old_participants = instance._participants()
         old_expense_info = model_to_dict(instance)
         serializer.save()
         new_expense_info = model_to_dict(serializer.instance)
+
+        keys = [
+            "amount",
+            "title",
+            "description",
+            "currency",
+            "date",
+            "payer",
+            "participants",
+        ]
+
+        for key in keys:
+            if old_expense_info[key] != new_expense_info[key]:
+                if key == "amount":
+                    log = f"Expense amount is changed from {instance.amount} to {serializer.instance.amount}."
+                elif key == "payer":
+                    log = f"Expense {key} is changed from {instance.payer.name} to {serializer.instance.payer.name}."
+                elif key == "participants":
+                    log = f"Expense participants are changed from {old_participants} to {serializer.instance._participants()}."
+                else:
+                    log = f"Expense {key} is changed from {old_expense_info[key]} to {new_expense_info[key]}."
+                Activity.objects.create(
+                    text=log,
+                    group=serializer.instance.group,
+                )
 
         if (
             old_expense_info["participants"] != new_expense_info["participants"]

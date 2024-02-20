@@ -122,6 +122,16 @@ class Expense(models.Model):
     def __str__(self):
         return f'Expense("{self.title}") - Amount: {self.amount}'
 
+    def _participants(self):
+        participants_names = [par.name for par in self.participants.all()]
+        if not participants_names:
+            return ""
+        if len(participants_names) == 1:
+            return participants_names[0]
+        participants_str = ", ".join(participants_names[:-1])
+        participants_str += f" and {participants_names[-1]}"
+        return participants_str
+
 
 class Debt(models.Model):
     amount = models.DecimalField(max_digits=10, decimal_places=2)

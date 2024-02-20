@@ -382,6 +382,8 @@ class ExpenseCRUDTests(BaseAPITestCase):
             "group": self.group.id,
             "participants": [self.member2.id],
         }
+        old_expense = copy(expense)
+        old_expense_participants = expense._participants()
         response = self.client.put(
             f"/api/expenses/{expense.id}/",
             data,
@@ -397,6 +399,33 @@ class ExpenseCRUDTests(BaseAPITestCase):
         self.assertEqual(expense.title, "Tea")
         self.assertEqual(expense.payer, self.member2)
         self.assertEqual(list(expense.participants.all()), [self.member2])
+
+        self.assertEqual(Activity.objects.count(), 5)
+        self.assertEqual(
+            Activity.objects.get(pk=1).text,
+            f"Expense amount is changed from {'{:.2f}'.format(old_expense.amount)} to {expense.amount}.",
+        )
+        self.assertEqual(Activity.objects.get(pk=1).group, self.group)
+        self.assertEqual(
+            Activity.objects.get(pk=2).text,
+            f"Expense title is changed from {old_expense.title} to {expense.title}.",
+        )
+        self.assertEqual(Activity.objects.get(pk=2).group, self.group)
+        self.assertEqual(
+            Activity.objects.get(pk=3).text,
+            f"Expense description is changed from {old_expense.description} to {expense.description}.",
+        )
+        self.assertEqual(Activity.objects.get(pk=3).group, self.group)
+        self.assertEqual(
+            Activity.objects.get(pk=4).text,
+            f"Expense payer is changed from {old_expense.payer.name} to {expense.payer.name}.",
+        )
+        self.assertEqual(Activity.objects.get(pk=4).group, self.group)
+        self.assertEqual(
+            Activity.objects.get(pk=5).text,
+            f"Expense participants are changed from {old_expense_participants} to {expense._participants()}.",
+        )
+        self.assertEqual(Activity.objects.get(pk=5).group, self.group)
 
     def test_delete_expense(self):
         ### Setup
