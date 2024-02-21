@@ -43,6 +43,7 @@ class UserManager(BaseUserManager):
 
 class User(AbstractBaseUser, PermissionsMixin):
     username = models.CharField(max_length=32, null=True)
+    name = models.CharField(max_length=32, null=True)
     email = models.EmailField(
         unique=True, max_length=128, default="example@hotmail.com", null=True
     )
@@ -175,6 +176,7 @@ class Activity(models.Model):
     text = models.CharField(max_length=256)
     date = models.DateTimeField(auto_now_add=True)
     group = models.ForeignKey(Group, on_delete=models.CASCADE, default=None)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
         return f"Activity: {self.text}"
