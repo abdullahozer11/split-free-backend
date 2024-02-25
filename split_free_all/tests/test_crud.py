@@ -112,6 +112,7 @@ class MemberCRUDTests(BaseAPITestCase):
     def test_delete_member(self):
         ### Setup
         member = Member.objects.create(name="Michael", group=self.group)
+        Balance.objects.create(owner=member, group=self.group)
 
         ### Action
         response = self.client.delete(

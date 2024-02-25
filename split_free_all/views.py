@@ -156,13 +156,15 @@ class MemberDetailView(generics.RetrieveUpdateDestroyAPIView):
         return Member.objects.filter(group__users=self.request.user)
 
     def perform_destroy(self, instance):
-        super().perform_destroy(instance)
+        Balance.objects.get(owner=instance).delete()
 
         Activity.objects.create(
             user=self.request.user,
             text=f'{self.request.user.name} removed member "{instance.name}" from group "{instance.group.title}"',
             group=instance.group,
         )
+
+        super().perform_destroy(instance)
 
 
 ################################################################################
