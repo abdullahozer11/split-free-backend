@@ -71,7 +71,7 @@ class MemberCRUDTests(BaseAPITestCase):
         self.assertEqual(Activity.objects.count(), 1)
         self.assertEqual(
             Activity.objects.get().text,
-            f"{self.user.name} added Apo member to {self.group.title} group",
+            f'{self.user.name} added member "Apo" to group "{self.group.title}"',
         )
         self.assertEqual(Activity.objects.get().group, self.group)
 
@@ -127,7 +127,7 @@ class MemberCRUDTests(BaseAPITestCase):
         self.assertEqual(Activity.objects.count(), 1)
         self.assertEqual(
             Activity.objects.get().text,
-            f"{self.user.name} removed {member.name} member from {member.group.title} group",
+            f'{self.user.name} removed member "{member.name}" from group "{member.group.title}"',
         )
         self.assertEqual(Activity.objects.get().group, self.group)
 
@@ -171,19 +171,19 @@ class GroupCRUDTests(BaseAPITestCase):
         self.assertEqual(Activity.objects.count(), 3)
         self.assertEqual(
             Activity.objects.first().text,
-            f"{self.user.name} created Birthday Party group",
+            f'{self.user.name} created group "Birthday Party"',
         )
         self.assertEqual(Activity.objects.first().group, created_group)
 
         self.assertEqual(
             Activity.objects.get(pk=2).text,
-            f"{self.user.name} added Michael member to Birthday Party group",
+            f'{self.user.name} added member "Michael" to group "Birthday Party"',
         )
         self.assertEqual(Activity.objects.get(pk=2).group, created_group)
 
         self.assertEqual(
             Activity.objects.get(pk=3).text,
-            f"{self.user.name} added Apollon member to Birthday Party group",
+            f'{self.user.name} added member "Apollon" to group "Birthday Party"',
         )
         self.assertEqual(Activity.objects.get(pk=3).group, created_group)
 
@@ -231,12 +231,12 @@ class GroupCRUDTests(BaseAPITestCase):
         self.assertEqual(Activity.objects.count(), 2)
         self.assertEqual(
             Activity.objects.get(pk=1).text,
-            f"{self.user.name} changed group title from {group_copy.title} to {data['title']}",
+            f"{self.user.name} changed group title from \"{group_copy.title}\" to \"{data['title']}\"",
         )
         self.assertEqual(Activity.objects.get(pk=1).group, self.group)
         self.assertEqual(
             Activity.objects.get(pk=2).text,
-            f"{self.user.name} changed group description from {group_copy.description} to {data['description']}",
+            f"{self.user.name} changed group description from \"{group_copy.description}\" to \"{data['description']}\"",
         )
         self.assertEqual(Activity.objects.get(pk=2).group, self.group)
 
@@ -340,8 +340,8 @@ class ExpenseCRUDTests(BaseAPITestCase):
         self.assertEqual(Activity.objects.count(), 1)
         self.assertEqual(
             Activity.objects.get().text,
-            f"{self.user.name} added an expense {expense.title} of amount {expense.amount} {expense.currency} "
-            f"to {self.group.title}",
+            f'{self.user.name} added an expense "{expense.title}" of amount {expense.amount} {expense.currency} '
+            f'to group "{self.group.title}"',
         )
         self.assertEqual(Activity.objects.get().group, self.group)
 
@@ -409,27 +409,27 @@ class ExpenseCRUDTests(BaseAPITestCase):
         self.assertEqual(Activity.objects.count(), 5)
         self.assertEqual(
             Activity.objects.get(pk=1).text,
-            f"{self.user.name} changed expense amount from {'{:.2f}'.format(old_expense.amount)} to {expense.amount}",
+            f"{self.user.name} changed expense \"{old_expense.title}\" amount from {'{:.2f}'.format(old_expense.amount)} to {expense.amount}",
         )
         self.assertEqual(Activity.objects.get(pk=1).group, self.group)
         self.assertEqual(
             Activity.objects.get(pk=2).text,
-            f"{self.user.name} changed expense title from {old_expense.title} to {expense.title}",
+            f'{self.user.name} changed expense "{old_expense.title}" title from "{old_expense.title}" to "{expense.title}"',
         )
         self.assertEqual(Activity.objects.get(pk=2).group, self.group)
         self.assertEqual(
             Activity.objects.get(pk=3).text,
-            f"{self.user.name} changed expense description from {old_expense.description} to {expense.description}",
+            f'{self.user.name} changed expense "{old_expense.title}" description from "{old_expense.description}" to "{expense.description}"',
         )
         self.assertEqual(Activity.objects.get(pk=3).group, self.group)
         self.assertEqual(
             Activity.objects.get(pk=4).text,
-            f"{self.user.name} changed expense payer from {old_expense.payer.name} to {expense.payer.name}",
+            f'{self.user.name} changed expense "{old_expense.title}" payer from "{old_expense.payer.name}" to "{expense.payer.name}"',
         )
         self.assertEqual(Activity.objects.get(pk=4).group, self.group)
         self.assertEqual(
             Activity.objects.get(pk=5).text,
-            f"{self.user.name} changed expense participants from {old_expense_participants} to {expense._participants()}",
+            f'{self.user.name} changed expense "{old_expense.title}" participants from "{old_expense_participants}" to "{expense._participants()}"',
         )
         self.assertEqual(Activity.objects.get(pk=5).group, self.group)
 
@@ -458,7 +458,7 @@ class ExpenseCRUDTests(BaseAPITestCase):
         self.assertEqual(Activity.objects.count(), 1)
         self.assertEqual(
             Activity.objects.get().text,
-            f"{self.user.name} deleted {expense.title} expense",
+            f'{self.user.name} deleted expense "{expense.title}"',
         )
         self.assertEqual(Activity.objects.get().group, self.group)
 
@@ -638,7 +638,8 @@ class InviteTokenTests(BaseAPITestCase):
 
         self.assertEqual(Activity.objects.count(), 1)
         self.assertEqual(
-            Activity.objects.get().text, f"New user has joined {another_group.title}"
+            Activity.objects.get().text,
+            f'New user has joined to group "{another_group.title}"',
         )
         self.assertEqual(Activity.objects.get().group, another_group)
 

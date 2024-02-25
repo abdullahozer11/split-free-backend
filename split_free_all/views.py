@@ -143,7 +143,7 @@ class MemberView(generics.ListCreateAPIView):
 
         Activity.objects.create(
             user=self.request.user,
-            text=f"{self.request.user.name} added {serializer.instance.name} member to {serializer.instance.group.title} group",
+            text=f'{self.request.user.name} added member "{serializer.instance.name}" to group "{serializer.instance.group.title}"',
             group=serializer.instance.group,
         )
 
@@ -160,7 +160,7 @@ class MemberDetailView(generics.RetrieveUpdateDestroyAPIView):
 
         Activity.objects.create(
             user=self.request.user,
-            text=f"{self.request.user.name} removed {instance.name} member from {instance.group.title} group",
+            text=f'{self.request.user.name} removed member "{instance.name}" from group "{instance.group.title}"',
             group=instance.group,
         )
 
@@ -190,14 +190,14 @@ class GroupView(generics.ListCreateAPIView):
 
         Activity.objects.create(
             user=self.request.user,
-            text=f"{self.request.user.name} created {serializer.instance.title} group",
+            text=f'{self.request.user.name} created group "{serializer.instance.title}"',
             group=serializer.instance,
         )
 
         for member_name in member_names:
             Activity.objects.create(
                 user=self.request.user,
-                text=f"{self.request.user.name} added {member_name} member to {serializer.instance.title} group",
+                text=f'{self.request.user.name} added member "{member_name}" to group "{serializer.instance.title}"',
                 group=serializer.instance,
             )
 
@@ -220,7 +220,7 @@ class GroupDetailView(generics.RetrieveUpdateDestroyAPIView):
         if old_instance.title != serializer.instance.title:
             Activity.objects.create(
                 user=self.request.user,
-                text=f"{self.request.user.name} changed group title from {old_instance.title} to {serializer.instance.title}",
+                text=f'{self.request.user.name} changed group title from "{old_instance.title}" to "{serializer.instance.title}"',
                 group=serializer.instance,
             )
 
@@ -228,7 +228,7 @@ class GroupDetailView(generics.RetrieveUpdateDestroyAPIView):
         if old_instance.description != serializer.instance.description:
             Activity.objects.create(
                 user=self.request.user,
-                text=f"{self.request.user.name} changed group description from {old_instance.description} to {serializer.instance.description}",
+                text=f'{self.request.user.name} changed group description from "{old_instance.description}" to "{serializer.instance.description}"',
                 group=serializer.instance,
             )
 
@@ -272,8 +272,8 @@ class ExpenseView(generics.ListCreateAPIView, BaseExpenseView):
 
         Activity.objects.create(
             user=self.request.user,
-            text=f"{self.request.user.name} added an expense {serializer.instance.title} of amount {serializer.instance.amount}"
-            f" {serializer.instance.currency} to {serializer.instance.group.title}",
+            text=f'{self.request.user.name} added an expense "{serializer.instance.title}" of amount {serializer.instance.amount}'
+            f' {serializer.instance.currency} to group "{serializer.instance.group.title}"',
             group=serializer.instance.group,
         )
 
@@ -300,13 +300,13 @@ class ExpenseDetailView(generics.RetrieveUpdateDestroyAPIView, BaseExpenseView):
             if old_expense_info[key] != new_expense_info[key]:
                 log = f"{self.request.user.name} changed "
                 if key == "amount":
-                    log += f"expense amount from {instance.amount} to {serializer.instance.amount}"
+                    log += f'expense "{instance.title}" amount from {instance.amount} to {serializer.instance.amount}'
                 elif key == "payer":
-                    log += f"expense {key} from {instance.payer.name} to {serializer.instance.payer.name}"
+                    log += f'expense "{instance.title}" payer from "{instance.payer.name}" to "{serializer.instance.payer.name}"'
                 elif key == "participants":
-                    log += f"expense participants from {old_participants} to {serializer.instance._participants()}"
+                    log += f'expense "{instance.title}" participants from "{old_participants}" to "{serializer.instance._participants()}"'
                 else:
-                    log += f"expense {key} from {old_expense_info[key]} to {new_expense_info[key]}"
+                    log += f'expense "{instance.title}" {key} from "{old_expense_info[key]}" to "{new_expense_info[key]}"'
                 Activity.objects.create(
                     user=self.request.user,
                     text=log,
@@ -333,7 +333,7 @@ class ExpenseDetailView(generics.RetrieveUpdateDestroyAPIView, BaseExpenseView):
 
         Activity.objects.create(
             user=self.request.user,
-            text=f"{self.request.user.name} deleted {instance.title} expense",
+            text=f'{self.request.user.name} deleted expense "{instance.title}"',
             group=instance.group,
         )
 
@@ -436,7 +436,7 @@ class AcceptInviteView(APIView):
         group.users.add(request.user)
         Activity.objects.create(
             user=self.request.user,
-            text=f"New user has joined {group.title}",
+            text=f'New user has joined to group "{group.title}"',
             group=group,
         )
         token.delete()
