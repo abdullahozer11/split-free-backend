@@ -132,6 +132,114 @@ class MemberCRUDTests(BaseAPITestCase):
         )
         self.assertEqual(Activity.objects.get().group, self.group)
 
+    def test_delete_member_who_paid_expense(self):
+        ### Setup
+        member1 = Member.objects.create(name="Michael", group=self.group)
+        member2 = Member.objects.create(name="Apojean", group=self.group)
+        Balance.objects.create(owner=member1, group=self.group)
+        Balance.objects.create(owner=member2, group=self.group)
+
+        data = {
+            "amount": 40.00,
+            "title": "Dinner",
+            "description": "Expense for dinner",
+            "payer": member1.id,
+            "group": self.group.id,
+            "participants": [member2.id],
+        }
+
+        self.client.post(
+            "/api/expenses/",
+            data,
+            format="json",
+            headers=get_auth_headers(self.access_token),
+        )
+
+        ### Checks 12
+        self.assertEqual(Balance.objects.count(), 2)
+        self.assertEqual(Balance.objects.get(pk=1).amount, -40)
+        self.assertEqual(Balance.objects.get(pk=2).amount, 40)
+        self.assertEqual(Debt.objects.get().amount, 40)
+        self.assertEqual(Debt.objects.count(), 1)
+
+        ### Action
+        self.client.delete(
+            f"/api/members/{member1.id}/",
+            format="json",
+            headers=get_auth_headers(self.access_token),
+        )
+
+        ### Checks 2
+        self.assertEqual(Balance.objects.count(), 1)
+        self.assertEqual(Balance.objects.get().amount, 0)
+        self.assertEqual(Debt.objects.count(), 0)
+
+        ### Further Action
+        response = self.client.delete(
+            f"/api/expenses/{Expense.objects.get().id}/",
+            format="json",
+            headers=get_auth_headers(self.access_token),
+        )
+
+        ### Checks 3
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(Expense.objects.count(), 0)
+        self.assertEqual(Debt.objects.count(), 0)
+
+    def test_delete_member_who_participated_expense(self):
+        ### Setup
+        member1 = Member.objects.create(name="Michael", group=self.group)
+        member2 = Member.objects.create(name="Apojean", group=self.group)
+        Balance.objects.create(owner=member1, group=self.group)
+        Balance.objects.create(owner=member2, group=self.group)
+
+        data = {
+            "amount": 40.00,
+            "title": "Dinner",
+            "description": "Expense for dinner",
+            "payer": member1.id,
+            "group": self.group.id,
+            "participants": [member2.id],
+        }
+
+        self.client.post(
+            "/api/expenses/",
+            data,
+            format="json",
+            headers=get_auth_headers(self.access_token),
+        )
+
+        ### Checks 12
+        self.assertEqual(Balance.objects.count(), 2)
+        self.assertEqual(Balance.objects.get(pk=1).amount, -40)
+        self.assertEqual(Balance.objects.get(pk=2).amount, 40)
+        self.assertEqual(Debt.objects.get().amount, 40)
+        self.assertEqual(Debt.objects.count(), 1)
+
+        ### Action
+        self.client.delete(
+            f"/api/members/{member2.id}/",
+            format="json",
+            headers=get_auth_headers(self.access_token),
+        )
+
+        ### Checks 2
+        self.assertEqual(Balance.objects.count(), 1)
+        self.assertEqual(Balance.objects.get().amount, 0)
+        self.assertEqual(Debt.objects.count(), 0)
+
+        ### Further Action
+        response = self.client.delete(
+            f"/api/expenses/{Expense.objects.get().id}/",
+            format="json",
+            headers=get_auth_headers(self.access_token),
+        )
+
+        ### Checks 3
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(Expense.objects.count(), 0)
+        self.assertEqual(Debt.objects.count(), 0)
+
 
 class GroupCRUDTests(BaseAPITestCase):
     def create_group_with_orm(self):
