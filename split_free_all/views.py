@@ -37,6 +37,7 @@ from split_free_all.signals import (
     expense_updated,
     group_created,
     group_updated,
+    member_deleted,
 )
 
 ################################################################################
@@ -156,7 +157,11 @@ class MemberDetailView(generics.RetrieveUpdateDestroyAPIView):
         return Member.objects.filter(group__users=self.request.user)
 
     def perform_destroy(self, instance):
-        Balance.objects.get(owner=instance).delete()
+        # Trigger the custom signal
+        member_deleted.send(
+            sender=self.__class__,
+            instance=instance,
+        )
 
         Activity.objects.create(
             user=self.request.user,
@@ -164,7 +169,7 @@ class MemberDetailView(generics.RetrieveUpdateDestroyAPIView):
             group=instance.group,
         )
 
-        super().perform_destroy(instance)
+        instance.delete()
 
 
 ################################################################################

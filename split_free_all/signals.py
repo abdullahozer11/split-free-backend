@@ -7,7 +7,7 @@ from django.dispatch import receiver
 from django.forms.models import model_to_dict
 
 from split_free_all.algo_debts import calculate_new_debts
-from split_free_all.models import Balance, Expense, Member
+from split_free_all.models import Balance, Debt, Expense, Member
 
 ################################################################################
 # Group
@@ -106,21 +106,24 @@ def apply_impact_expense(expense_info):
 
 
 def undo_impact_expense(expense_info):
-    payer_balance = Balance.objects.get(
-        group=expense_info["group"], owner=expense_info["payer"]
-    )
-    payer_balance.amount += expense_info["amount"]
-    payer_balance.save()
+    if expense_info["payer"] and expense_info["participants"]:
+        payer_balance = Balance.objects.get(
+            group=expense_info["group"], owner=expense_info["payer"]
+        )
+        payer_balance.amount += expense_info["amount"]
+        payer_balance.save()
 
-    # This is the amount that each participant paid for the expense
-    split_amount = Decimal(
-        float(expense_info["amount"]) / len(expense_info["participants"])
-    )
+        # This is the amount that each participant paid for the expense
+        split_amount = Decimal(
+            float(expense_info["amount"]) / len(expense_info["participants"])
+        )
 
-    for member in expense_info["participants"]:
-        member_balance = Balance.objects.get(group=expense_info["group"], owner=member)
-        member_balance.amount -= split_amount
-        member_balance.save()
+        for member in expense_info["participants"]:
+            member_balance = Balance.objects.get(
+                group=expense_info["group"], owner=member
+            )
+            member_balance.amount -= split_amount
+            member_balance.save()
 
 
 expense_created = Signal()
@@ -150,4 +153,29 @@ expense_destroyed = Signal()
 @receiver(expense_destroyed)
 def remove_debts_and_transfers(sender, instance, **kwargs):
     undo_impact_expense(expense_info=model_to_dict(instance))
+    calculate_new_debts(group=instance.group)
+
+
+################################################################################
+# Member
+
+
+def undo_impact_member(member):
+    Balance.objects.get(owner=member).delete()
+
+    for debt in Debt.objects.filter(borrower=member):
+        debt.lender.balance.amount += debt.amount
+        debt.lender.balance.save()
+
+    for debt in Debt.objects.filter(lender=member):
+        debt.borrower.balance.amount -= debt.amount
+        debt.borrower.balance.save()
+
+
+member_deleted = Signal()
+
+
+@receiver(member_deleted)
+def remove_debts_and_transfers(sender, instance, **kwargs):
+    undo_impact_member(member=instance)
     calculate_new_debts(group=instance.group)
