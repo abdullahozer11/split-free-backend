@@ -76,7 +76,7 @@ class UserView(generics.ListCreateAPIView):
 
         # Build the response data
         response_data = {
-            "id": user.id,
+            "id": str(user.id),
             "refresh": str(refresh),
             "access": str(refresh.access_token),
         }
