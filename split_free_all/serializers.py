@@ -48,7 +48,7 @@ class UserSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError({"email": "This field is required."})
             if User.objects.filter(email=data["email"]).exists():
                 raise serializers.ValidationError(
-                    {"email": "A user with that email already exists."}
+                    {"email": "A user with this email already exists."}
                 )
             if len(data["password"]) < 8:
                 raise serializers.ValidationError(
