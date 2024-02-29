@@ -46,7 +46,7 @@ from split_free_all.signals import (
 
 class OnlyAdminPermissionExceptPost(BasePermission):
     def has_permission(self, request, view):
-        # Allow GET request without authentication
+        # Allow POST request without authentication
         if request.method == "POST":
             return True
         # Require authentication for other methods
