@@ -19,7 +19,7 @@ from split_free_all.views import (
     MemberDetailView,
     MemberView,
     UserDetailView,
-    UserNameView,
+    UserInfoView,
     UserView,
 )
 
@@ -42,7 +42,7 @@ urlpatterns = [
     path("invite/accept/", AcceptInviteView.as_view(), name="invite-accept"),
     path("invite/generate/", InviteGenerateView.as_view(), name="invite-generate"),
     # Authentication
-    path("user_name/", UserNameView.as_view(), name="user-name"),
+    path("user_info/", UserInfoView.as_view(), name="user-info"),
     path("users/", UserView.as_view(), name="user-list"),
     path("users/<int:pk>/", UserDetailView.as_view(), name="user-detail"),
 ]

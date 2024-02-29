@@ -76,6 +76,7 @@ class UserView(generics.ListCreateAPIView):
 
         # Build the response data
         response_data = {
+            "id": user.id,
             "refresh": str(refresh),
             "access": str(refresh.access_token),
         }
@@ -102,9 +103,14 @@ class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = UserSerializer
 
 
-class UserNameView(APIView):
+class UserInfoView(APIView):
+    permission_classes = (IsAuthenticated,)
+
     def get(self, request):
-        return Response({"name": request.user.name}, status=status.HTTP_200_OK)
+        name = request.user.name
+        return Response(
+            {"name": name, "id": request.user.id}, status=status.HTTP_200_OK
+        )
 
     def post(self, request):
         new_name = request.data.get("name")
