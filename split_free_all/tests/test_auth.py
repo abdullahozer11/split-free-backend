@@ -6,6 +6,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
+from split_free_all.helpers import get_auth_headers
 from split_free_all.models import User
 
 
@@ -249,3 +250,21 @@ class AuthTests(APITestCase):
         self.assertTrue("access" in response.data)
         self.assertTrue("refresh" in response.data)
         self.assertTrue("id" in response.data)
+
+    def test_user_info(self):
+        """
+        Ensure we can get user name and id
+        """
+        url = reverse("token_obtain_pair")
+        data = {"email": "test_user@hotmail.com", "password": "test_password"}
+        response = self.client.post(url, data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        access_token = response.data["access"]
+        response = self.client.get(
+            f"/api/user_info/",
+            format="json",
+            headers=get_auth_headers(access_token),
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue("id" in response.data)
+        self.assertTrue("name" in response.data)
