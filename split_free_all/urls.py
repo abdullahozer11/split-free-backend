@@ -9,7 +9,6 @@ from split_free_all.views import (
     ActivityView,
     BalanceView,
     DebtView,
-    DeleteUserView,
     ExpenseDetailView,
     ExpenseView,
     GroupDetailView,
@@ -37,7 +36,6 @@ urlpatterns = [
     path("token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("logout/", LogoutView.as_view(), name="logout"),
-    path("delete/", DeleteUserView.as_view(), name="delete-user"),
     # Invite link
     path("invite/accept/", AcceptInviteView.as_view(), name="invite-accept"),
     path("invite/generate/", InviteGenerateView.as_view(), name="invite-generate"),

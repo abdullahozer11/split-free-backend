@@ -418,19 +418,6 @@ class LogoutView(APIView):
 
 
 ################################################################################
-# Delete User
-
-
-class DeleteUserView(APIView):
-    permission_classes = (IsAuthenticated,)
-
-    def post(self, request):
-        user = request.user
-        user.delete()
-        return Response(status=status.HTTP_200_OK)
-
-
-################################################################################
 # Invite User to Group
 
 

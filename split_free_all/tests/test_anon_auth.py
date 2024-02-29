@@ -49,15 +49,21 @@ class AnonUserTests(TestCase):
         refresh = RefreshToken.for_user(anon_user)
         access_token = str(refresh.access_token)
 
-        url = reverse("delete-user")
+        url = reverse("user-info")
 
-        response = self.client.post(
+        id_response = self.client.get(
             url,
-            {id: anon_user.id},
             format="json",
             headers=get_auth_headers(access_token),
         )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        response = self.client.delete(
+            f"/api/users/{id_response.data['id']}/",
+            {id: id_response.data["id"]},
+            headers=get_auth_headers(access_token),
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(User.objects.count(), 0)
 
     def test_anon_user_can_create_group(self):
