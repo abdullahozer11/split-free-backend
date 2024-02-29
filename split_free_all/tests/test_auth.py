@@ -237,3 +237,15 @@ class AuthTests(APITestCase):
         response = self.client.post(url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.data, {"detail": "Token is invalid or expired"})
+
+    def test_signup(self):
+        """
+        Ensure we can sign up a user.
+        """
+        url = reverse("user-list")
+        data = {"email": "test_user2@hotmail.com", "password": "test_password"}
+        response = self.client.post(url, data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertTrue("access" in response.data)
+        self.assertTrue("refresh" in response.data)
+        self.assertTrue("id" in response.data)
