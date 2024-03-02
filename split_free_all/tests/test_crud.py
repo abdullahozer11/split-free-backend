@@ -296,6 +296,26 @@ class GroupCRUDTests(BaseAPITestCase):
         )
         self.assertEqual(Activity.objects.get(pk=3).group, created_group)
 
+    def test_create_group_without_description(self):
+        ### Setup
+        data = {
+            "title": "Birthday Party",
+            "member_names": ["Michael", "Apojean"],
+        }
+
+        ### Action
+        response = self.client.post(
+            "/api/groups/",
+            data,
+            content_type="application/json",
+            format="json",
+            headers=get_auth_headers(self.access_token),
+        )
+
+        ### Checks
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(Group.objects.count(), 1)
+
     def test_read_group(self):
         ### Setup
         self.create_group_with_orm()
