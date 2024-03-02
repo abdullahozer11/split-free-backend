@@ -109,7 +109,7 @@ class Balance(models.Model):
 class Expense(models.Model):
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     title = models.CharField(max_length=255, default=None)
-    description = models.TextField()
+    description = models.TextField(null=True, blank=True)
     currency = models.CharField(max_length=4, choices=CURRENCY_CHOICES, default="EUR")
     payer = models.ForeignKey(
         Member,

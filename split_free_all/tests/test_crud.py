@@ -454,6 +454,39 @@ class ExpenseCRUDTests(BaseAPITestCase):
         )
         self.assertEqual(Activity.objects.get().group, self.group)
 
+    def test_create_expense_without_description(self):
+        ### Actions
+        data = {
+            "amount": 50.00,
+            "title": "Dinner",
+            "payer": self.member1.id,
+            "group": self.group.id,
+            "participants": [self.member1.id, self.member2.id],
+        }
+        response = self.client.post(
+            "/api/expenses/",
+            data,
+            format="json",
+            headers=get_auth_headers(self.access_token),
+        )
+
+        ### Checks
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(Expense.objects.count(), 1)
+        expense = Expense.objects.get()
+        self.assertEqual(expense.title, "Dinner")
+        self.assertEqual(expense.payer, self.member1)
+        self.assertEqual(expense.currency, "EUR")
+        self.assertEqual(list(expense.participants.all()), [self.member1, self.member2])
+
+        self.assertEqual(Activity.objects.count(), 1)
+        self.assertEqual(
+            Activity.objects.get().text,
+            f'{self.user.name} added an expense "{expense.title}" of amount {expense.amount} {expense.currency} '
+            f'to group "{self.group.title}"',
+        )
+        self.assertEqual(Activity.objects.get().group, self.group)
+
     def test_read_expense(self):
         ### Setup
         expense = Expense.objects.create(
