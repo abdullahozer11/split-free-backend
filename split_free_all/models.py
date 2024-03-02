@@ -44,9 +44,7 @@ class UserManager(BaseUserManager):
 class User(AbstractBaseUser, PermissionsMixin):
     username = models.CharField(max_length=32, null=True)
     name = models.CharField(max_length=32, null=True)
-    email = models.EmailField(
-        unique=True, max_length=128, default="example@hotmail.com", null=True
-    )
+    email = models.EmailField(unique=True, max_length=128)
     password = models.CharField(max_length=32, null=True)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
@@ -64,6 +62,10 @@ class User(AbstractBaseUser, PermissionsMixin):
     def save(self, *args, **kwargs):
         if not self.username and self.is_anonymous:
             self.username = str(uuid.uuid4())
+            if self.email is None:
+                # Set a unique email for anonymous users with null email
+                self.email = f"anon_{self.username}@example.com"
+
         super().save(*args, **kwargs)
 
 
