@@ -119,7 +119,7 @@ class Expense(models.Model):
         related_name="payed_expenses",
     )
     group = models.ForeignKey(Group, on_delete=models.CASCADE, default=None)
-    date = models.CharField(max_length=30, default="")
+    date = models.CharField(max_length=240, default="")
     participants = models.ManyToManyField(Member, related_name="participated_expenses")
 
     def __str__(self):
