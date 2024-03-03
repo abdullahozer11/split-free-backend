@@ -23,10 +23,7 @@ class UserTests(APITestCase):
         self.assertEqual(User.objects.get().email, "test_user@hotmail.com")
         user = User.objects.get()
         self.assertTrue(user.check_password("test_password"))
-        self.assertTrue("access" in response.data)
-        self.assertTrue("refresh" in response.data)
-        self.assertTrue(response.data["access"])
-        self.assertTrue(response.data["refresh"])
+        self.assertTrue("id" in response.data)
 
     def test_create_user_without_password(self):
         """
@@ -103,7 +100,9 @@ class UserTests(APITestCase):
 class AuthTests(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user(
-            email="test_user@hotmail.com", password="test_password"
+            email="test_user@hotmail.com",
+            password="test_password",
+            is_active=True,
         )
 
     def test_login(self):
@@ -247,8 +246,6 @@ class AuthTests(APITestCase):
         data = {"email": "test_user2@hotmail.com", "password": "test_password"}
         response = self.client.post(url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertTrue("access" in response.data)
-        self.assertTrue("refresh" in response.data)
         self.assertTrue("id" in response.data)
 
     def test_user_info(self):
@@ -268,3 +265,39 @@ class AuthTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue("id" in response.data)
         self.assertTrue("name" in response.data)
+
+
+class EmailActivationTests(APITestCase):
+    def test_valid_activation_token(self):
+        # Test case for a valid activation token
+        User.objects.create(email="test@example.com", activation_token="valid_token")
+        response = self.client.get(
+            reverse("email-activate", kwargs={"token": "valid_token"})
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["detail"], "User activated successfully")
+
+    def test_invalid_activation_token(self):
+        # Test case for an invalid activation token
+        response = self.client.get(
+            reverse("email-activate", kwargs={"token": "invalid_token"})
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data["detail"], "Invalid activation token")
+
+    def test_user_signup_results_in_inactive_account(self):
+        url = reverse("user-list")
+        data = {"email": "test_user2@hotmail.com", "password": "test_password"}
+        response = self.client.post(url, data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(User.objects.count(), 1)
+        self.assertEqual(User.objects.get().is_active, False)
+
+        activation_token = User.objects.get().activation_token
+
+        response = self.client.get(
+            reverse("email-activate", kwargs={"token": str(activation_token)})
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["detail"], "User activated successfully")
+        self.assertEqual(User.objects.get().is_active, True)

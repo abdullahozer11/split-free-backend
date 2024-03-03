@@ -1,6 +1,6 @@
 # Copyright (c) 2023 SplitFree Org.
 # serializers.py
-
+from django.core.mail import send_mail
 from rest_framework import serializers
 
 from split_free_all.models import (
@@ -67,7 +67,31 @@ class UserSerializer(serializers.ModelSerializer):
                 email=None, password=None, is_anonymous=True
             )
         else:
-            return User.objects.create_user(email=email, password=password)
+            user = User.objects.create_user(
+                email=email,
+                password=password,
+            )
+            activation_link = self.context["request"].build_absolute_uri(
+                f"/email/activate/{user.activation_token}"
+            )
+            self.send_confirmation_email(email, activation_link)
+            return user
+
+    @staticmethod
+    def send_confirmation_email(user_email, activation_link):
+        subject = "SplitFree - Account Activation"
+        body = (
+            "\n"
+            "Welcome to SplitFree!\n\n"
+            "Thank you for joining us. SplitFree is an open source organization that aims "
+            "to provide an expense splitter app. Our application is free and devoid of any "
+            "charges or advertisements.\n\n"
+            f"Please click on the link below to confirm your sign up and activate your account:\n\n"
+            f"{activation_link}\n\n"
+            "If you didn't sign up for SplitFree, you can ignore this email.\n\n"
+            "Best regards,\nThe SplitFree Team"
+        )
+        send_mail(subject, body, "your_sender_email@example.com", [user_email])
 
 
 class MemberSerializer(serializers.ModelSerializer):

@@ -13,7 +13,9 @@ class BaseAPITestCase(TestCase):
         super().setUp()
         # Create a test user
         self.user = User.objects.create(
-            email="testuser@splitmail.com", password="testpassword"
+            email="testuser@splitmail.com",
+            password="testpassword",
+            is_active=True,
         )
 
         # Obtain a valid access token for the test user

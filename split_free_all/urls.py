@@ -9,6 +9,7 @@ from split_free_all.views import (
     ActivityView,
     BalanceView,
     DebtView,
+    EmailActivateView,
     ExpenseDetailView,
     ExpenseView,
     GroupDetailView,
@@ -43,4 +44,10 @@ urlpatterns = [
     path("user_info/", UserInfoView.as_view(), name="user-info"),
     path("users/", UserView.as_view(), name="user-list"),
     path("users/<int:pk>/", UserDetailView.as_view(), name="user-detail"),
+    # Email
+    path(
+        "email/activate/<str:token>/",
+        EmailActivateView.as_view(),
+        name="email-activate",
+    ),
 ]

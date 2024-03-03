@@ -86,7 +86,9 @@ class AnonUserTests(TestCase):
         self.assertEqual(Group.objects.get().title, "Test Group")
 
     def test_anon_user_can_attach_to_group_member(self):
-        anon_user = User.objects.create(email=None, password=None, is_anonymous=True)
+        anon_user = User.objects.create(
+            email=None, password=None, is_anonymous=True, is_active=True
+        )
         member1 = Member.objects.create(name="Alice")
         member2 = Member.objects.create(name="Bob")
 
@@ -109,3 +111,9 @@ class AnonUserTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(Member.objects.get(id=member1.id).user, anon_user)
         self.assertEqual(Member.objects.get(id=member2.id).user, None)
+
+    def test_anon_user_is_created_active_by_default(self):
+        url = reverse("user-list")
+        response = self.client.post(url, {"is_anonymous": True}, format="json")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(User.objects.get().is_active, True)

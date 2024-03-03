@@ -23,6 +23,7 @@ class UserManager(BaseUserManager):
             user = self.model(**extra_fields)
             user.set_unusable_password()
             user.is_anonymous = True
+            user.is_active = True
         else:
             if not email:
                 raise ValueError("The Email field must be set")
@@ -46,9 +47,10 @@ class User(AbstractBaseUser, PermissionsMixin):
     name = models.CharField(max_length=32, null=True)
     email = models.EmailField(unique=True, max_length=128)
     password = models.CharField(max_length=32, null=True)
-    is_active = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
     is_anonymous = models.BooleanField(default=False)
+    activation_token = models.CharField(max_length=32, null=True, blank=True)
 
     USERNAME_FIELD = "email"
     objects = UserManager()
@@ -65,6 +67,10 @@ class User(AbstractBaseUser, PermissionsMixin):
             if self.email is None:
                 # Set a unique email for anonymous users with null email
                 self.email = f"anon_{self.username}@example.com"
+                self.is_active = True
+
+        if not self.activation_token and not self.is_anonymous:
+            self.activation_token = str(uuid.uuid4())
 
         super().save(*args, **kwargs)
 

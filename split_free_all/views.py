@@ -71,18 +71,16 @@ class UserView(generics.ListCreateAPIView):
         # Get tokens
         refresh = RefreshToken.for_user(user)
 
+        response_data = {"id": str(user.id)}
+
         if user.is_anonymous:
             refresh.set_exp(lifetime=timedelta(days=99999))
-
-        # Build the response data
-        response_data = {
-            "id": str(user.id),
-            "refresh": str(refresh),
-            "access": str(refresh.access_token),
-        }
+            response_data["refresh"] = str(refresh)
+            response_data["access"] = str(refresh.access_token)
 
         # Set the response status and data
         self.response_status = status.HTTP_201_CREATED
+
         self.response_data = response_data
 
     def create(self, request, *args, **kwargs):
@@ -478,3 +476,26 @@ class ActivityView(generics.ListAPIView):
     permission_classes = (IsAuthenticated,)
     queryset = Activity.objects.all()
     serializer_class = ActivitySerializer
+
+
+################################################################################
+# Activate Email
+
+
+class EmailActivateView(APIView):
+    def get(self, request, token):
+        try:
+            # Find the user associated with the token and activate the account
+            user = User.objects.get(activation_token=token)
+            user.is_active = True
+            user.save()
+
+            return Response(
+                {"detail": "User activated successfully"}, status=status.HTTP_200_OK
+            )
+
+        except User.DoesNotExist:
+            return Response(
+                {"detail": "Invalid activation token"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
