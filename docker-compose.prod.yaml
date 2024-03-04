@@ -24,9 +24,8 @@ services:
   nginx:
     build: ./nginx
     container_name: split-free-nginx-prod
-    # The port 1337 is the one exposed by nginx to the host machine.
     ports:
-      - 1337:80
+      - 80:80
     depends_on:
       - web
 
