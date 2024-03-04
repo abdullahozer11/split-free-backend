@@ -18,6 +18,9 @@ COPY requirements/base.txt requirements
 COPY requirements/dev.txt requirements
 RUN pip install --upgrade pip && pip install -r requirements/dev.txt
 
+# Collect static files
+RUN python manage.py collectstatic --noinput
+
 # Copy entrypoint.sh
 COPY ./entrypoint.sh /usr/src/app/entrypoint.sh
 RUN sed -i 's/\r$//g' /usr/src/app/entrypoint.sh
