@@ -84,16 +84,13 @@ class UserView(generics.ListCreateAPIView):
         self.response_data = response_data
 
     def create(self, request, *args, **kwargs):
-        try:
-            serializer = self.get_serializer(data=request.data)
-            serializer.is_valid(raise_exception=True)
-            self.perform_create(serializer)
-            headers = self.get_success_headers(serializer.data)
-            return Response(
-                self.response_data, status=self.response_status, headers=headers
-            )
-        except Exception as e:
-            return Response(e.detail, status=status.HTTP_400_BAD_REQUEST)
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(
+            self.response_data, status=self.response_status, headers=headers
+        )
 
 
 class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
