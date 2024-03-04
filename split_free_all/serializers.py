@@ -1,6 +1,10 @@
 # Copyright (c) 2023 SplitFree Org.
 # serializers.py
+from django.contrib.sites.shortcuts import get_current_site
 from django.core.mail import send_mail
+from django.template.loader import render_to_string
+from django.templatetags.static import static
+from django.utils.html import strip_tags
 from rest_framework import serializers
 
 from split_free_all.models import (
@@ -74,24 +78,28 @@ class UserSerializer(serializers.ModelSerializer):
             activation_link = self.context["request"].build_absolute_uri(
                 f"/email/activate/{user.activation_token}"
             )
-            self.send_confirmation_email(email, activation_link)
+            self.send_confirmation_email(
+                self.context["request"], email, activation_link
+            )
             return user
 
     @staticmethod
-    def send_confirmation_email(user_email, activation_link):
+    def send_confirmation_email(request, user_email, activation_link):
         subject = "SplitFree - Account Activation"
-        body = (
-            "\n"
-            "Welcome to SplitFree!\n\n"
-            "Thank you for joining us. SplitFree is an open source organization that aims "
-            "to provide an expense splitter app. Our application is free and devoid of any "
-            "charges or advertisements.\n\n"
-            f"Please click on the link below to confirm your sign up and activate your account:\n\n"
-            f"{activation_link}\n\n"
-            "If you didn't sign up for SplitFree, you can ignore this email.\n\n"
-            "Best regards,\nThe SplitFree Team"
+        current_site = get_current_site(request)
+        logo_url = f'https://{current_site.domain}{static("images/logo.png")}'
+        html_message = render_to_string(
+            "confirmation_email_template.html",
+            {"activation_link": activation_link, "logo_url": logo_url},
         )
-        send_mail(subject, body, "your_sender_email@example.com", [user_email])
+        plain_message = strip_tags(html_message)
+        send_mail(
+            subject,
+            plain_message,
+            "split.free.org@gmail.com",
+            [user_email],
+            html_message=html_message,
+        )
 
 
 class MemberSerializer(serializers.ModelSerializer):
