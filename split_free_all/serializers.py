@@ -1,5 +1,6 @@
 # Copyright (c) 2023 SplitFree Org.
 # serializers.py
+from django.conf import settings
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
@@ -75,12 +76,13 @@ class UserSerializer(serializers.ModelSerializer):
                 email=email,
                 password=password,
             )
-            activation_link = self.context["request"].build_absolute_uri(
-                f"/email/activate/{user.activation_token}"
-            )
-            self.send_confirmation_email(
-                self.context["request"], email, activation_link
-            )
+            if not settings.NEW_USERS_ACTIVE:  # Check if not in test mode
+                activation_link = self.context["request"].build_absolute_uri(
+                    f"/email/activate/{user.activation_token}"
+                )
+                self.send_confirmation_email(
+                    self.context["request"], email, activation_link
+                )
             return user
 
     @staticmethod

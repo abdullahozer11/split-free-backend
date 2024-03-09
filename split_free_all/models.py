@@ -1,6 +1,7 @@
 # Copyright (c) 2023 SplitFree Org.
 import uuid
 
+from django.conf import settings
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
 from django.contrib.auth.models import PermissionsMixin
 from django.db import models
@@ -68,6 +69,9 @@ class User(AbstractBaseUser, PermissionsMixin):
                 # Set a unique email for anonymous users with null email
                 self.email = f"anon_{self.username}@example.com"
                 self.is_active = True
+
+        if settings.NEW_USERS_ACTIVE:
+            self.is_active = True
 
         if not self.activation_token and not self.is_anonymous:
             self.activation_token = str(uuid.uuid4())
