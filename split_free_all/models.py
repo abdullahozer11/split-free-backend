@@ -44,7 +44,6 @@ class UserManager(BaseUserManager):
 
 
 class User(AbstractBaseUser, PermissionsMixin):
-    username = models.CharField(max_length=32, null=True)
     name = models.CharField(max_length=32, null=True)
     email = models.EmailField(unique=True, max_length=128)
     password = models.CharField(max_length=32, null=True)
@@ -63,11 +62,10 @@ class User(AbstractBaseUser, PermissionsMixin):
             return f'User("{self.email}")'
 
     def save(self, *args, **kwargs):
-        if not self.username and self.is_anonymous:
-            self.username = str(uuid.uuid4())
-            if self.email is None:
+        if self.is_anonymous:
+            if self.email == "" or not self.email:
                 # Set a unique email for anonymous users with null email
-                self.email = f"anon_{self.username}@example.com"
+                self.email = f"anon_{uuid.uuid4()}@example.com"
                 self.is_active = True
 
         if settings.NEW_USERS_ACTIVE:
