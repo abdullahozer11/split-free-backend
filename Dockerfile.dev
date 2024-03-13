@@ -15,8 +15,7 @@ WORKDIR /app
 # Install development dependencies
 RUN mkdir requirements
 COPY requirements/base.txt requirements
-COPY requirements/dev.txt requirements
-RUN pip install --upgrade pip && pip install -r requirements/dev.txt
+RUN pip install --upgrade pip && pip install -r requirements/base.txt
 
 # Copy entrypoint.sh
 COPY ./entrypoint.sh /usr/src/app/entrypoint.sh
