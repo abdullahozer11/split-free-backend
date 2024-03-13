@@ -78,7 +78,7 @@ class UserSerializer(serializers.ModelSerializer):
             )
             if not settings.NEW_USERS_ACTIVE:  # Check if not in test mode
                 activation_link = self.context["request"].build_absolute_uri(
-                    f"/email/activate/{user.activation_token}"
+                    f"/api/email/activate/{user.activation_token}/"
                 )
                 self.send_confirmation_email(
                     self.context["request"], email, activation_link
