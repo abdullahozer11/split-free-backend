@@ -39,9 +39,9 @@ pre-commit install
 
 1. **Build the Docker image:**
 
-    1. Rename *.env.prod-sample* to *.env.prod* and edit that file
+    1. Rename */env/prod-sample* to */env/prod* and edit that file
 
-    1. Rename *.env.prod.db-sample* to *.env.prod.db* and edit that file
+    1. Rename */env/prod.db-sample* to */env/prod.db* and edit that file
 
     1. Build the images and run the containers:
 
@@ -70,7 +70,7 @@ pre-commit install
 
 ### For development
 
-1. Rename *.env.dev-sample* to *.env.dev*
+1. Rename */env/dev-sample* to */env/dev*
 
 1. **Build the images and run the containers:**
 
