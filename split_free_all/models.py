@@ -44,13 +44,13 @@ class UserManager(BaseUserManager):
 
 
 class User(AbstractBaseUser, PermissionsMixin):
-    name = models.CharField(max_length=32, null=True)
+    name = models.CharField(max_length=128, null=True)
     email = models.EmailField(unique=True, max_length=128)
-    password = models.CharField(max_length=32, null=True)
+    password = models.CharField(max_length=128, null=True)
     is_active = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
     is_anonymous = models.BooleanField(default=False)
-    activation_token = models.CharField(max_length=32, null=True, blank=True)
+    activation_token = models.CharField(max_length=128, null=True, blank=True)
 
     USERNAME_FIELD = "email"
     objects = UserManager()
