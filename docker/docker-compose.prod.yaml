@@ -3,15 +3,15 @@ version: '3.8'
 services:
   web:
     build:
-        context: .
-        dockerfile: Dockerfile.prod
+        context: ..
+        dockerfile: docker/Dockerfile.prod
     container_name: split-free-prod
     command: gunicorn split_free_backend.wsgi:application --bind 0.0.0.0:8000
     # Expose port 8000 locally. It's handled by nginx.
     expose:
       - 8000
     env_file:
-      - ./env/prod
+      - ../env/prod
     depends_on:
       - db
   db:
@@ -20,9 +20,9 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     env_file:
-      - ./env/prod.db
+      - ../env/prod.db
   nginx:
-    build: ./nginx
+    build: ../nginx
     container_name: split-free-nginx-prod
     ports:
       - 80:80
