@@ -3,3 +3,6 @@
 .github
 .venv
 .gitignore
+.run
+.scripts
+staticfiles
