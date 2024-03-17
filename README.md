@@ -46,26 +46,26 @@ pre-commit install
     1. Build the images and run the containers:
 
         ```bash
-        docker-compose -f docker-compose.prod.yaml up -d --build
+        docker-compose -f docker/docker-compose.prod.yaml up -d --build
         ```
 
     1. Make migrations:
 
         ```bash
-        docker-compose -f docker-compose.prod.yaml exec web python manage.py
+        docker-compose -f docker/docker-compose.prod.yaml exec web python manage.py
         migrate --noinput
         ```
 
     1. See logs:
 
         ```bash
-        docker-compose -f docker-compose.prod.yaml logs -f
+        docker-compose -f docker/docker-compose.prod.yaml logs -f
         ```
 
     1. Shut the container down:
 
         ```bash
-        docker-compose -f docker-compose.prod.yaml down -v
+        docker-compose -f docker/docker-compose.prod.yaml down -v
         ```
 
 ### For development
@@ -75,5 +75,5 @@ pre-commit install
 1. **Build the images and run the containers:**
 
     ```bash
-    docker-compose -f docker-compose.dev.yaml up -d --build
+    docker-compose -f docker/docker-compose.dev.yaml up -d --build
     ```
