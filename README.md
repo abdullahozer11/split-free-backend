@@ -1,79 +1,77 @@
 # split-free-backend
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](
-    https://opensource.org/licenses/MIT
+https://opensource.org/licenses/MIT
 )
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](
-    https://github.com/psf/black
+https://github.com/psf/black
 )
 [![Code style: isort](https://img.shields.io/badge/code%20style-isort-%231674b1.svg)](
-    https://github.com/PyCQA/isort
+https://github.com/PyCQA/isort
+)
+[![Code style: flake8](https://img.shields.io/badge/code%20style-flake8-%231674b1.svg)](
+https://github.com/PyCQA/flake8
 )
 
 ## How to install
 
-- Create a new virtual environment and activate it
+- Install Poetry
 
 ```bash
-python -m venv .venv
-. .venv/bin/activate
+pip install poetry
 ```
 
-- Install in dependencies
+- Install dependencies
 
 ```bash
-pip install -r requirements/base.txt
+make install
 ```
 
-- As dev, install the dev dependencies and set up the pre-commit
-  hooks
+- As dev, set up the pre-commit hooks
 
 ```bash
-pip install -r requirements/dev.txt
-pre-commit install
+make install-pre-commit
 ```
 
 ## How to install with docker
 
-### For production or staging environments
+### For production
 
-1. **Build the Docker image:**
+1. Copy prod settings to local folder and adjust if needed:
 
-    1. Rename */env/prod-sample* to */env/prod* and edit that file
+    ```bash
+    make copy-prod-settings
+    ```
 
-    1. Rename */env/prod.db-sample* to */env/prod.db* and edit that file
+2. Build the images and run the containers:
 
-    1. Build the images and run the containers:
-
-        ```bash
-        docker-compose -f docker/docker-compose.prod.yaml up -d --build
-        ```
-
-    1. Make migrations:
-
-        ```bash
-        docker-compose -f docker/docker-compose.prod.yaml exec web python manage.py
-        migrate --noinput
-        ```
-
-    1. See logs:
-
-        ```bash
-        docker-compose -f docker/docker-compose.prod.yaml logs -f
-        ```
-
-    1. Shut the container down:
-
-        ```bash
-        docker-compose -f docker/docker-compose.prod.yaml down -v
-        ```
+    ```bash
+    make build-prod
+    ```
 
 ### For development
 
-1. Rename */env/dev-sample* to */env/dev*
+1. Copy dev settings to local folder and adjust if needed:
 
-1. **Build the images and run the containers:**
+```bash
+make copy-dev-settings
+```
 
-    ```bash
-    docker-compose -f docker/docker-compose.dev.yaml up -d --build
-    ```
+2. **Build the db image and run the container:**
+
+```bash
+make build-dev
+```
+
+3. Run Django server on localhost
+
+```bash
+make migrate
+make runserver
+```
+
+### Testing
+
+```bash
+make test
+```
