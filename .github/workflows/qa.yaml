@@ -1,0 +1,41 @@
+name: Quality Assurance
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  quality-assurance:
+    name: Quality Assurance
+    runs-on: ubuntu-latest
+    container: python:3.10.4-buster
+
+    services:
+      db:
+        image: postgres:14.2-alpine
+        env:
+          POSTGRES_DB: sfree
+          POSTGRES_USER: sfree
+          POSTGRES_PASSWORD: sfree
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Install Poetry
+      uses: abatilo/actions-poetry@v2.0.0
+      with:
+        poetry-version: 1.4.2
+
+    - name: Install Dependencies
+      run: make install && make install-pre-commit
+
+    - name: Lint
+      run: make lint
+
+    - name: Test
+      run: make test
+      env:
+        SFREE_SETTING_DATABASES: '{"default":{"HOST":"db"}}'
+        SFREE_SETTING_LOCAL_SETTINGS_PATH: './split_free_backend/project/settings/templates/settings.github.py'
