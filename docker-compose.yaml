@@ -1,0 +1,30 @@
+services:
+
+  db:
+    image: postgres:14.2-alpine
+    restart: unless-stopped
+    container_name: split-free-db-prod
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_DB: sfree
+      POSTGRES_USER: sfree
+      POSTGRES_PASSWORD: sfree
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  app:
+    build: .
+    restart: unless-stopped
+    container_name: split-free-prod
+    ports:
+      - '8000:8000'
+    depends_on:
+      - db
+    environment:
+      SFREE_SETTING_DATABASES: '{"default":{"HOST":"db"}}'
+      SFREE_SETTING_LOCAL_SETTINGS_PATH: 'local/settings.prod.py'
+
+volumes:
+  postgres_data:
+    driver: local

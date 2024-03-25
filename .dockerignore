@@ -1,8 +1,0 @@
-.idea
-.pre-commit-config.yaml
-.github
-.venv
-.gitignore
-.run
-.scripts
-staticfiles

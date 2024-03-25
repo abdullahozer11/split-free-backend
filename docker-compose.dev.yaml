@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15
+    restart: unless-stopped
+    ports:
+      - '5432:5432'
+    container_name: split-free-db-dev
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_USER=sfree
+      - POSTGRES_PASSWORD=sfree
+      - POSTGRES_DB=sfree
+
+volumes:
+  postgres_data:
+    driver: local
