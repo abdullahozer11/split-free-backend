@@ -1,0 +1,55 @@
+[tool.poetry]
+name = "split-free-backend"
+version = "0.1.0"
+description = "Free to Use Expense Splitter App."
+authors = ["Abdullah OZER <abdullahozer11@hotmail.com>", "Michael LOHIER <lohiermichael@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+django = "^5.0.3"
+djangorestframework = "^3.14.0"
+djangorestframework-simplejwt = "^5.3.1"
+django-split-settings = "^1.2.0"
+pydantic = "^1.10.7"
+pynacl = "^1.5.0"
+django-cors-headers = "^4.3.1"
+psycopg2-binary = "^2.9.9"
+sqlparse = "^0.4.4"
+typing_extensions = "^4.9.0"
+gunicorn = "^21.2.0"
+django-storages = "^1.14.2"
+boto3 = "^1.34.69"
+
+[tool.poetry.group.dev.dependencies]
+colorlog = "^6.7.0"
+django-debug-toolbar = "^4.1.0"
+pytest = "^8.1.1"
+ipython = "^8.20.0"
+pre-commit = "^3.6.0"
+pytest-django = "^4.5.2"
+pytest-xdist = "^3.3.1"
+model-bakery = "^1.12.0"
+flake8 = "^7.0.0"
+black = "^24.3.0"
+isort = "^5.13.2"
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+
+[tool.black]
+line_length = 119
+multi_line_output = 3
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "split_free_backend.project.settings"
+django_find_project = false
+python_files = "test_*.py"
+testpaths = ["split_free_backend"]
+filterwarnings = "ignore::DeprecationWarning:^(?!node\\.).*:"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
