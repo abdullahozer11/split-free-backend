@@ -1,9 +1,0 @@
-# Copyright (c) 2023 SplitFree Org.
-
-from django.contrib import admin
-from django.urls import include, path
-
-urlpatterns = [
-    path("admin/", admin.site.urls),
-    path("api/", include("split_free_all.urls")),
-]

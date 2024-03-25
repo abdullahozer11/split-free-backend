@@ -74,14 +74,11 @@ celerybeat-schedule.*
 *.sage.py
 
 # Environments
-.env
-env/dev
-env/prod
-env/prod.db
 .venv
 venv/
 env.bak/
 venv.bak/
+.env
 
 # mkdocs documentation
 /site
@@ -109,3 +106,5 @@ GitHub.sublime-settings
 .history
 
 staticfiles
+
+local
