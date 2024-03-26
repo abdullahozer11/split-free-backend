@@ -12,6 +12,11 @@ LOGGING["handlers"]["console"]["formatter"] = "colored"  # type: ignore # noqa: 
 # Uncomment the following to use sqlite instead of postgresql
 DATABASES = SQLITE_OPTION  # type: ignore # noqa: F821
 
+# S3 Access
+USE_S3 = False
+# AWS_ACCESS_KEY_ID = NotImplemented
+# AWS_SECRET_ACCESS_KEY = NotImplemented
+
 # the following activates new user without email verification
 NEW_USERS_ACTIVE = False
 

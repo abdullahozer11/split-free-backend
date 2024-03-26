@@ -60,3 +60,7 @@ init-local-settings:
 	cp split_free_backend/project/settings/templates/settings.dev.py ./local/settings.dev.py
 	cp split_free_backend/project/settings/templates/settings.prod.py ./local/settings.prod.py
 	cp split_free_backend/project/settings/templates/settings.unittests.py ./local/settings.unittests.py
+
+.PHONY: collectstatic
+collectstatic:
+	poetry run python -m split_free_backend.manage collectstatic --no-input

@@ -23,6 +23,7 @@ include(
     "database.py",
     "rest_framework.py",
     optional(LOCAL_SETTINGS_PATH),
+    "storages.py",
     "envvars.py",
 )
 
