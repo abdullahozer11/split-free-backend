@@ -12,7 +12,7 @@ concurrency:
 jobs:
   quality-assurance:
     name: Quality Assurance
-    uses: ./.github/workflows/qa.yml
+    uses: ./.github/workflows/qa.yaml
 
   deploy:
     name: Deploy
