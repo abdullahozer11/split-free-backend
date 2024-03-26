@@ -1,7 +1,7 @@
 # Copyright (c) 2024 SplitFree Org.
 
 DEBUG = False
-SECRET_KEY = NotImplemented
+SECRET_KEY = "change_me"
 
 ALLOWED_HOSTS = ["*"]
 CORS_ALLOW_ALL_ORIGINS = True

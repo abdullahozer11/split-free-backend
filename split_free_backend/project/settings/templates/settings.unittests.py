@@ -9,4 +9,4 @@ LOGGING["handlers"]["console"]["level"] = "DEBUG"  # type: ignore # noqa: F821
 LOGGING["handlers"]["console"]["formatter"] = "colored"  # type: ignore # noqa: F821
 
 # Uncomment out the following to use sqlite instead of postgresql
-# DATABASES = SQLITE_OPTION  # type: ignore # noqa: F821
+DATABASES = SQLITE_OPTION  # type: ignore # noqa: F821

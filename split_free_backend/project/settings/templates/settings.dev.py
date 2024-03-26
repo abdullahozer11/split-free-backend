@@ -11,3 +11,10 @@ LOGGING["handlers"]["console"]["formatter"] = "colored"  # type: ignore # noqa: 
 
 # Uncomment the following to use sqlite instead of postgresql
 DATABASES = SQLITE_OPTION  # type: ignore # noqa: F821
+
+# the following activates new user without email verification
+NEW_USERS_ACTIVE = False
+
+# in case email verification is needed email host password must be set
+# EMAIL_HOST_USER = "split.free.org@gmail.com"
+# EMAIL_HOST_PASSWORD = NotImplemented
