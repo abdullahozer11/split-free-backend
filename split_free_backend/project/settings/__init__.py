@@ -20,6 +20,7 @@ include(
     "base.py",
     "logging.py",
     "email.py",
+    "database.py",
     "rest_framework.py",
     optional(LOCAL_SETTINGS_PATH),
     "envvars.py",
