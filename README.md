@@ -37,10 +37,10 @@ make install-pre-commit
 
 ### For production
 
-1. Copy prod settings to local folder and adjust if needed:
+1. Init local settings then adjust settings.prod.py if needed:
 
     ```bash
-    make copy-prod-settings
+    make init-local-settings
     ```
 
 2. Build the images and run the containers:
@@ -51,10 +51,10 @@ make install-pre-commit
 
 ### For development
 
-1. Copy dev settings to local folder and adjust if needed:
+1. 1. Init local settings then adjust settings.dev.py if needed:
 
 ```bash
-make copy-dev-settings
+make init-local-settings
 ```
 
 2. **Build the db image and run the container:**

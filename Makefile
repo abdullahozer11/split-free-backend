@@ -54,13 +54,9 @@ build-prod:
 build-dev-db:
 	docker-compose -f docker-compose.dev.yaml up -d --build
 
-.PHONY: copy-dev-settings
-copy-dev-settings:
+.PHONY: init-local-settings
+init-local-settings:
 	mkdir -p local
 	cp split_free_backend/project/settings/templates/settings.dev.py ./local/settings.dev.py
-	cp split_free_backend/project/settings/templates/settings.unittests.py ./local/settings.unittests.py
-
-.PHONY: copy-prod-settings
-copy-prod-settings:
-	mkdir -p local
 	cp split_free_backend/project/settings/templates/settings.prod.py ./local/settings.prod.py
+	cp split_free_backend/project/settings/templates/settings.unittests.py ./local/settings.unittests.py
