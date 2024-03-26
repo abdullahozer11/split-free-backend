@@ -4,6 +4,11 @@ on:
   push:
     branches:
       - master
+      - prod
+  pull_request:
+    branches:
+      - master
+  workflow_call: {}
 
 jobs:
   quality-assurance:
