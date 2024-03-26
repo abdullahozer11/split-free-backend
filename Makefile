@@ -8,7 +8,8 @@ migrate:
 
 .PHONY: test
 test:
-	poetry run pytest -v -rs -n auto --show-capture=no
+	PYTEST_RUNNING=true poetry run pytest -v -rs -n auto --show-capture=no
+    export PYTEST_RUNNING=false
 
 .PHONY: install
 install:
