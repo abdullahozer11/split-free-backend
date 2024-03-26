@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - prod
+      - staging
 
 concurrency:
   group: master
@@ -18,12 +19,15 @@ jobs:
     name: Deploy
     needs: quality-assurance
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        environment: [prod, staging]
     steps:
       - name: Configure SSH
+        if: matrix.environment == 'prod'
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-          SSH_HOST: ${{ secrets.SSH_HOST }}
-          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_HOST: ${{ secrets.PROD_SSH_HOST }}
         run: |
           mkdir -p ~/.ssh/
           echo "$SSH_PRIVATE_KEY" > ~/.ssh/github
@@ -31,11 +35,30 @@ jobs:
           cat >>~/.ssh/config <<END
           Host target
             HostName $SSH_HOST
-            User $SSH_USER
+            User ubuntu
             IdentityFile ~/.ssh/github
             LogLevel ERROR
             StrictHostKeyChecking no
           END
+
+      - name: Configure SSH for Staging
+        if: matrix.environment == 'staging'
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_HOST: ${{ secrets.STAGING_SSH_HOST }}
+        run: |
+          mkdir -p ~/.ssh/
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/github
+          chmod 600 ~/.ssh/github
+          cat >>~/.ssh/config <<END
+          Host target
+            HostName $SSH_HOST
+            User ubuntu
+            IdentityFile ~/.ssh/github
+            LogLevel ERROR
+            StrictHostKeyChecking no
+          END
+
       - name: Run deploy
         run: |
           ssh target "cd split-free-backend/ && docker-compose down && git pull && docker-compose build && docker-compose up -d --force-recreate"
