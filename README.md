@@ -60,7 +60,7 @@ make copy-dev-settings
 2. **Build the db image and run the container:**
 
 ```bash
-make build-dev
+make build-dev-db
 ```
 
 3. Run Django server on localhost

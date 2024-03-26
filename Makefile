@@ -50,8 +50,8 @@ update: install migrate install-pre-commit ;
 build-prod:
 	docker-compose -f docker-compose.yaml up -d --build
 
-.PHONY: build-dev
-build-dev:
+.PHONY: build-dev-db
+build-dev-db:
 	docker-compose -f docker-compose.dev.yaml up -d --build
 
 .PHONY: copy-dev-settings
